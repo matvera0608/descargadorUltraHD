@@ -93,12 +93,20 @@ echo Conexión a Internet detectada. Continuado con el giteo...
 echo.
 :: **********************************
 
+:: --- SECCIÓN PARA INICIAR REPOSITORIO ---
+:: Esta parte solo se ejecuta si la carpeta .git no existe
+IF NOT EXIST ".git" (
+    echo Inicializando nuevo repositorio...
+    git init
+    git branch -M main
+) ELSE (
+    echo Repositorio ya inicializado.
+)
+
 echo esta sección es para agregar en el repositorio correspondiente
 
-git init
 git add .
 git commit -m "%COMMIT_MESSAGE%"
-git branch -M main
 
 rem esta sección es para dar control al pull
 git pull --rebase
