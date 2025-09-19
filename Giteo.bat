@@ -99,6 +99,10 @@ IF NOT EXIST ".git" (
     echo Inicializando nuevo repositorio...
     git init
     git branch -M main
+    :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
+    SET /P "URL=Ingresa la URL del repositorio de GitHub: "
+    git remote add origin %URL%
+    git push -u origin main
 ) ELSE (
     echo Repositorio ya inicializado.
 )
