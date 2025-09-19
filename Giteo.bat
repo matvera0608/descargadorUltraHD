@@ -105,7 +105,6 @@ IF NOT EXIST ".git" (
     :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
     SET /P "URL=Ingresa la URL del repositorio de GitHub: "
     git remote add origin %URL%
-    git push -u origin main
 ) ELSE (
     echo Repositorio ya inicializado.
     echo esta sección es para agregar en el repositorio correspondiente
@@ -114,6 +113,8 @@ IF NOT EXIST ".git" (
 	rem esta sección es para dar control al pull
     git pull --rebase
 )
+
+    git push -u origin main
 IF %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: Hubo un CONFLICTO DE FUSION.
