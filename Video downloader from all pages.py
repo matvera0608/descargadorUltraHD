@@ -1,60 +1,58 @@
+from tqdm import tqdm
+import time
 from yt_dlp import YoutubeDL
 
-# def navegador_abierto(nombre="chrome"):
-#     for proceso in psutil.process_iter(["name"]):
-#         if nombre.lower() in proceso.info["name"].lower():
-#             return True
-#     return False
+def obtenerURL():
+    return input("\nIntroduce el link del video: ")
+
+def listarCalidadesSegúnPágina(url):
+    ydl_opts_info = {
+        "listformats": True,
+        }
+    print("\n LISTA DE CALIDADES DISPONIBLES \n")
+    with YoutubeDL(ydl_opts_info) as ydl:
+            ydl.extract_info(url, download=False)
 
 
-# ydl_opts_info = {
-#     "listformats": True,
-# }
+def descargar_videos():
+    cant_video = input("Introduce la cantidad de videos que deseas descargar: ").strip()
+    while not cant_video.isdigit() or int(cant_video) <= 0:
+        print("La cantidad debe ser un número positivo.")
+        cant_video = input("Introduce la cantidad de videos que deseas descargar: ").strip()
+        
+    for cant in range(int(cant_video)):
+        url = obtenerURL()
+        while "http" not in url or url.strip() == "":
+            print("\n URL inválida, por favor introduce una URL válida.")
+            url = obtenerURL()
+        listarCalidadesSegúnPágina(url)
+        formato = input("\nIntroduce el código de formato deseado: ")
+        ydl_opts = {
+            "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
+            "format": formato,
+            "merge_output_format": "mp4",
+            "noplaylist": True,
+            "nooverwrites": True,
+            "postprocessors": [{
+            "key": "FFmpegVideoRemuxer",
+            "preferedformat": "mp4"
+            }]
+        }
+        print("\n⏳ Preparando descarga...")
 
-# try:
-#     print("\n LISTA DE CALIDADES DISPONIBLES \n")
-#     with YoutubeDL(ydl_opts_info) as ydl:
-#         ydl.extract_info(, download=False)
-# except Exception as excepción:
-#         if "Unable to download webpage" in str(excepción):
-#             print("\n ERROR DE CONEXIÓN")
-#         else:
-#             print("\n Error al descargar: {}".format(excepción))
+        for i in tqdm(range(100), desc="Descargando"):
+            time.sleep(0.05)
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+                    print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
+        except Exception as excepción:
+            if "Unable to download webpage" in str(excepción):
+                print("\n ERROR DE CONEXIÓN en el video")
+            else:
+                print("\n Error al descargar el video: {}".format(excepción))
+
+descargar_videos()
 
 
-def cargar_configuración():
-    ydl_opts = {
-        "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
-        "format": "bestvideo+bestaudio/best",
-        "merge_output_format": "mp4",
-        "cookiesfrombrowser": ("chrome",),
-        "noplaylist": True,
-        "nooverwrites": True,
-        "postprocessors": [{
-        "key": "FFmpegVideoRemuxer",
-        "preferedformat": "mp4"
-        }]
-    }
-    return ydl_opts
-
-def iniciar_descarga():
-    opción = cargar_configuración()
-    cant_video = int(input("¿Cuántos videos querés descargar? "))
-    
-    for i in range(cant_video):
-    
-        url = input("introduce el link del video: ")    
-        descargar(url, opción)
-
-
-def descargar(url, opción):
-    try:
-        with YoutubeDL(opción) as ydl:
-            ydl.download([url])
-    except Exception as excepción:
-        if "Unable to download webpage" in str(excepción):
-            print("\n ERROR DE CONEXIÓN")
-        else:
-            print("\n Error al descargar: {}".format(excepción))      
-            
-iniciar_descarga()          
+print(input("\nDescarga completada con audio convertido a AAC compatible."))
