@@ -161,7 +161,7 @@ IF NOT EXIST ".git" (
     SET /P "URL=Ingresa la URL del repositorio de GitHub: "
     git remote add origin %URL%
 ) ELSE (
-    echo Repositorio ya inicializado.
+    echo Repositorio ya inicializado
     echo esta sección es para agregar en el repositorio correspondiente
     git add .
     git commit -m "%COMMIT_MESSAGE%"
@@ -188,7 +188,6 @@ IF %ERRORLEVEL% NEQ 0 (
         )
     )
 )
-
 git push -u origin main
 
 @REM IF %ERRORLEVEL% NEQ 0 (
