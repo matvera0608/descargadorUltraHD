@@ -169,33 +169,34 @@ IF NOT EXIST ".git" (
     git add .
     git commit -m "%COMMIT_MESSAGE%"
 	rem esta sección es para dar control al pull
+    git rebase --abort
 )
 echo Intentando subir cambios a GitHub
 
-IF %ERRORLEVEL% NEQ 0 (
-echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
-SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+@REM IF %ERRORLEVEL% NEQ 0 (
+@REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
+@REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
 
-IF /I "%hacerPull%"=="si" (
-    git pull --rebase
-    
-    IF %ERRORLEVEL% NEQ 0 (
-        echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
-        pause
-        GOTO END_SCRIPT
-    )
-    
-    IF %ERRORLEVEL% EQU 0 (
-        echo Rebase exitoso. Reintentando la subida...
-        git push -u origin main
-    )
-) ELSE (
-    echo Operación de sincronización cancelada.
-    pause
-    GOTO END_SCRIPT
-)
-)
-git push -u origin main
+@REM     IF /I "%hacerPull%"=="si" (
+@REM         git pull --rebase
+        
+@REM         IF %ERRORLEVEL% NEQ 0 (
+@REM             echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
+@REM             pause
+@REM             GOTO END_SCRIPT
+@REM         )
+        
+@REM         IF %ERRORLEVEL% EQU 0 (
+@REM             echo Rebase exitoso. Reintentando la subida...
+@REM             git push -u origin main
+@REM         )
+@REM     ) ELSE (
+@REM         echo Operación de sincronización cancelada.
+@REM         pause
+@REM         GOTO END_SCRIPT
+@REM     )
+@REM )
+git push -u origin main -f
 
 @REM IF %ERRORLEVEL% NEQ 0 (
 @REM     echo.
