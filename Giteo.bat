@@ -5,9 +5,22 @@ echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
 
+:: --- VARIABLES DE MENSAJES DE COMMIT ---
+
+SET "msg1=El primer programa hecho por mi."
+SET "msg2=Cambios realizados en los archivos de trabajo."
+SET "msg3=Mejoras y ajustes pequeños."
+SET "msg4=Progreso en desarrollo."
+SET "msg5=Correcciones y optimización del código."
+SET "msg6=Archivos actualizados para la entrega."
+SET "msg7=Subida del contenido actualizado."
+SET "msg8=Se implementó muchos detalles y ajustes."
+SET "msg9=Es súper útil esta herramienta de automatización, no es necesario escribir código uno por uno."
+
+
+:: --- SELECCION DE LENGUAJE ---
+echo.
 echo --- Qué lenguajes de programación querés crear un .gitignore ---
-
-
 echo 1. Python
 echo 2. JavaScript (Node.js)
 echo 3. C# (Visual Studio)
@@ -33,47 +46,41 @@ IF "%leng_prog_opcion%"=="1" (
     GOTO SELECT_LANGUAGE
 )
 
+GOTO SELECT_COMMIT_MSG
+
+:: --- FUNCION PARA CREAR .GITIGNORE ---
 :CREATE_GITIGNORE
-SET "LANG_TYPE=%~1"
-IF "%LANG_TYPE%"=="python" (
-    echo # Python >> .gitignore
-    echo __pycache__/ >> .gitignore
-    echo *.pyc >> .gitignore
-    echo .venv/ >> .gitignore
-) ELSE IF "%LANG_TYPE%"=="javascript" (
-    echo # Node.js >> .gitignore
-    echo node_modules/ >> .gitignore
-    echo .env >> .gitignore
-) ELSE IF "%LANG_TYPE%"=="csharp" (
-    echo # C# >> .gitignore
-    echo bin/ >> .gitignore
-    echo obj/ >> .gitignore
-) ELSE IF "%LANG_TYPE%"=="java" (
-    echo # Java >> .gitignore
-    echo *.class >> .gitignore
-    echo *.log >> .gitignore
-    echo /bin/ >> .gitignore
-    echo /target/ >> .gitignore
-    echo .project >> .gitignore
-    echo .classpath >> .gitignore
-)
-echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
+    IF EXIST .gitignore (
+        echo El archivo .gitignore ya existe. No se sobrescribira.
+        GOTO :EOF
+    )
+    SET "LANG_TYPE=%~1"
+    IF "%LANG_TYPE%"=="python" (
+        echo # Python >> .gitignore
+        echo __pycache__/ >> .gitignore
+        echo *.pyc >> .gitignore
+        echo .venv/ >> .gitignore
+    ) ELSE IF "%LANG_TYPE%"=="javascript" (
+        echo # Node.js >> .gitignore
+        echo node_modules/ >> .gitignore
+        echo .env >> .gitignore
+    ) ELSE IF "%LANG_TYPE%"=="csharp" (
+        echo # C# >> .gitignore
+        echo bin/ >> .gitignore
+        echo obj/ >> .gitignore
+    ) ELSE IF "%LANG_TYPE%"=="java" (
+        echo # Java >> .gitignore
+        echo *.class >> .gitignore
+        echo *.log >> .gitignore
+        echo /bin/ >> .gitignore
+        echo /target/ >> .gitignore
+        echo .project >> .gitignore
+        echo .classpath >> .gitignore
+    )
+    echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
+    GOTO :EOF
 
-:: --- CONFIGURACION DE MENSAJES DE COMMIT ---
-:: Define tus mensajes de commit predefinidos aquí
-
-SET "msg1=El primer programa hecho por mi."
-SET "msg2=Cambios realizados en los archivos de trabajo."
-SET "msg3=Mejoras y ajustes pequeños."
-SET "msg4=Progreso en desarrollo."
-SET "msg5=Correcciones y optimización del código."
-SET "msg6=Archivos actualizados para la entrega."
-SET "msg7=Subida del contenido actualizado."
-SET "msg8=Se implementó muchos detalles y ajustes."
-SET "msg9=Es súper útil esta herramienta de automatización, no es necesario escribir código uno por uno."
-
-
-:: --- SELECCION DE MENSAJE DE COMMIT ---
+:SELECT_COMMIT_MSG
 echo.
 echo --- Selecciona un mensaje de commit ---
 echo 1. %msg1%
@@ -87,12 +94,9 @@ echo 8. %msg8%
 echo 9. %msg9%
 echo 10. Ingresa un mensaje a tu gusto
 echo.
-
-:SELECT_COMMIT_MSG
 SET /P "opcion=Ingresa el número del mensaje o '10' para uno personalizado u otros números deseados: "
 
 
-:: Usamos IF/ELSE IF para manejar las opciones numéricas y el salto a personalizado
 IF "%opcion%"=="1" (
     SET "COMMIT_MESSAGE=%msg1%"
 ) ELSE IF "%opcion%"=="2" (
@@ -127,11 +131,11 @@ IF "%COMMIT_MESSAGE%"=="" (
     GOTO SELECT_COMMIT_MSG
 )
 
+
 :CONTINUE_GIT_OPERATIONS
 echo.
 echo Usando el mensaje: "%COMMIT_MESSAGE%"
 echo.
-
 
 :: **** VERIFICACIÓN DE INTERNET ****
 CALL :CHECK_INTERNET
@@ -146,41 +150,37 @@ IF %INTERNET_STATUS% NEQ 0 (
 echo.
 echo Conexión a Internet detectada. Continuado con el giteo...
 echo.
-:: **********************************
 
-:: --- SECCIÓN PARA INICIAR REPOSITORIO ---
-:: Esta parte solo se ejecuta si la carpeta .git no existe
+:: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
 IF NOT EXIST ".git" (
-    echo Inicializando nuevo repositorio...
-    git init
-    git add .
-    git commit -m "%COMMIT_MESSAGE%"
-    git branch -M main
+    echo Inicializando nuevo repositorio...
+    git init
+    git add .
+    git commit -m "%COMMIT_MESSAGE%"
+    git branch -M main
 
-    IF NOT EXIST repositorio_url.txt (
-        SET /P "URL=Ingresa la URL del repositorio de GitHub: "
-        echo %URL%>repositorio_url.txt
-        git remote add origin %URL%
-    ) ELSE (
-        SET /P URL=<repositorio_url.txt
-        git remote add origin %URL%
-    )
-
-    git push -u origin main
-
+    IF NOT EXIST repositorio_url.txt (
+        SET /P "URL=Ingresa la URL del repositorio de GitHub: "
+        echo %URL%>repositorio_url.txt
+    ) ELSE (
+        SET /P URL=<repositorio_url.txt
+    )
+    git remote add origin %URL%
+    git push -u origin main
 ) ELSE (
-    echo Repositorio ya inicializado.
-    echo Asegurando que el repositorio local este actualizado...
-    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-    IF /I "%hacerPull%"=="si" git pull --rebase
+    echo Repositorio ya inicializado.
+    echo Asegurando que el repositorio local este actualizado...
+    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+    IF /I "%hacerPull%"=="si" git pull --rebase
 
-    echo Agregando y commiteando los nuevos cambios...
-    git add .
-    git commit -m "%COMMIT_MESSAGE%"
+    echo Agregando y commiteando los nuevos cambios...
+    git add .
+    git commit -m "%COMMIT_MESSAGE%"
 
-    echo Subiendo los cambios a GitHub...
-    git push -u origin main
+    echo Subiendo los cambios a GitHub...
+    git push -u origin main
 )
+
 IF %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: Hubo un CONFLICTO DE FUSION.
@@ -199,17 +199,6 @@ IF %ERRORLEVEL% NEQ 0 (
     GOTO END_SCRIPT
 )
 
-echo Intentando subir cambios a GitHub...
-git push -u origin main
-
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ERROR: Falló al pushear los cambios.
-    echo Por favor, revisa el mensaje de error de Git.
-    echo.
-    pause
-    GOTO END_SCRIPT
-)
 echo.
 echo ¡Giteo completado exitosamente!
 
@@ -217,14 +206,12 @@ pause
 
 :CHECK_INTERNET
     ping -n 1 8.8.8.8 -w 1000 >NUL
-    :: El ERRORLEVEL de ping es 0 si fue exitoso, 1 si falló
-    ::
     IF %ERRORLEVEL% EQU 0 (
-        SET "INTERNET_STATUS=0" :: 0 significa conectado
+        SET "INTERNET_STATUS=0"
     ) ELSE (
-        SET "INTERNET_STATUS=1" :: 1 significa desconectado
+        SET "INTERNET_STATUS=1"
     )
     GOTO :EOF
-:: --- FIN FUNCION DE VERIFICACION DE INTERNET ---
-
+	
 :END_SCRIPT
+pause
