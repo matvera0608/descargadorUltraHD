@@ -178,21 +178,17 @@ IF %ERRORLEVEL% NEQ 0 (
     IF /I "%hacerPull%"=="si" (
         git pull --rebase
         IF %ERRORLEVEL% NEQ 0 (
-            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+            echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
             pause
             GOTO END_SCRIPT
         )
-    )
-	
-	IF %ERRORLEVEL% EQU 0 (
+        IF %ERRORLEVEL% EQU 0 (
 		echo Rebase exitoso. Reintentando la subida...
 		git push -u origin main
-	) ELSE (
-		echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
-		pause
-		GOTO END_SCRIPT
-	)
+	    )
+    )
 )
+
 git push -u origin main
 
 IF %ERRORLEVEL% NEQ 0 (
