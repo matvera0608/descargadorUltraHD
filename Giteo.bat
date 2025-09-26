@@ -4,6 +4,8 @@ echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
 
+:: while(1) { .\Giteo.bat; Start-Sleep -s 1; Clear-Host }
+
 :: --- VARIABLES DE MENSAJES DE COMMIT ---
 
 SET "msg1=El primer programa hecho por mi."
@@ -170,25 +172,29 @@ IF NOT EXIST ".git" (
 )
 echo Intentando subir cambios a GitHub
 
-@REM IF %ERRORLEVEL% NEQ 0 (
-@REM     echo.
-@REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
-@REM     echo Intentando sincronizar y subir de nuevo...
-@REM     :: Implementación de la pregunta de control (IF)
-@REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-@REM     IF /I "%hacerPull%"=="si" (
-@REM         git pull --rebase
-@REM         IF %ERRORLEVEL% NEQ 0 (
-@REM             echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
-@REM             pause
-@REM             GOTO END_SCRIPT
-@REM         )
-@REM         IF %ERRORLEVEL% EQU 0 (
-@REM         echo Rebase exitoso. Reintentando la subida...
-@REM         git push -u origin main
-@REM         )
-@REM     )
-@REM )
+IF %ERRORLEVEL% NEQ 0 (
+    echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
+    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+    
+    IF /I "%hacerPull%"=="si" (
+        git pull --rebase
+        
+        IF %ERRORLEVEL% NEQ 0 (
+            echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
+            pause
+            GOTO END_SCRIPT
+        )
+        
+        IF %ERRORLEVEL% EQU 0 (
+            echo Rebase exitoso. Reintentando la subida...
+            git push -u origin main
+        )
+    ) ELSE (
+        echo Operación de sincronización cancelada.
+        pause
+        GOTO END_SCRIPT
+    )
+)
 git push -u origin main
 
 @REM IF %ERRORLEVEL% NEQ 0 (
