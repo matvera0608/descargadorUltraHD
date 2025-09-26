@@ -168,25 +168,6 @@ IF NOT EXIST ".git" (
     git pull --rebase
 )
 
-    git push -u origin main
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ERROR: Hubo un CONFLICTO DE FUSION.
-    echo Git ha detenido la operacion.
-    echo.
-    echo Por favor, sigue estos pasos para resolverlo:
-    echo 1. Abre el editor de codigo y resuelve los conflictos.
-    echo 2. Una vez resueltos, usa la terminal para ejecutar:
-    echo    git add .
-    echo    git rebase --continue
-    echo.
-    echo Si quieres cancelar el rebase, usa:
-    echo    git rebase --abort
-    echo.
-    pause
-    GOTO END_SCRIPT
-)
-
 echo Intentando subir cambios a GitHub...
 git push -u origin main
 
