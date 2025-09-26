@@ -173,7 +173,7 @@ IF NOT EXIST ".git" (
 echo Intentando subir cambios a GitHub
 
 IF %ERRORLEVEL% NEQ 0 (
-    echo(
+    echo((
     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
     
