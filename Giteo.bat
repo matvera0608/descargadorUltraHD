@@ -174,9 +174,17 @@ IF %ERRORLEVEL% NEQ 0 (
 	echo.
 	echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
 	echo Intentando sincronizar y subir de nuevo...
-	
-	:: *** AQUÍ ES DONDE AUTOMATIZAMOS EL PULL ***
-	git pull --rebase
+	:: Implementación de la pregunta de control (IF)
+    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+    
+    IF /I "%hacerPull%"=="si" (
+        git pull --rebase
+        IF %ERRORLEVEL% NEQ 0 (
+            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+            pause
+            GOTO END_SCRIPT
+        )
+    )
 	
 	IF %ERRORLEVEL% EQU 0 (
 		echo Rebase exitoso. Reintentando la subida...
