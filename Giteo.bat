@@ -170,6 +170,23 @@ IF NOT EXIST ".git" (
 
 echo Intentando subir cambios a GitHub...
 git push -u origin main
+IF %ERRORLEVEL% NEQ 0 (
+	echo.
+	echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
+	echo Intentando sincronizar y subir de nuevo...
+	
+	:: *** AQUÍ ES DONDE AUTOMATIZAMOS EL PULL ***
+	git pull --rebase
+	
+	IF %ERRORLEVEL% EQU 0 (
+		echo Rebase exitoso. Reintentando la subida...
+		git push -u origin main
+	) ELSE (
+		echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+		pause
+		GOTO END_SCRIPT
+	)
+)
 
 IF %ERRORLEVEL% NEQ 0 (
     echo.
