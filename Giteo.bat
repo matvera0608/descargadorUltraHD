@@ -149,6 +149,7 @@ IF %INTERNET_STATUS% NEQ 0 (
 echo.
 echo Conexión a Internet detectada. Continuado con el giteo
 echo.
+
 :: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
 IF NOT EXIST ".git" (
     echo Inicializando nuevo repositorio...
@@ -165,10 +166,33 @@ IF NOT EXIST ".git" (
     git add .
     git commit -m "%COMMIT_MESSAGE%"
 	rem esta sección es para dar control al pull
-    git pull --rebase
 )
-
 echo Intentando subir cambios a GitHub...
+IF %ERRORLEVEL% NEQ 0 (
+	echo.
+	echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
+	echo Intentando sincronizar y subir de nuevo...
+	:: Implementación de la pregunta de control (IF)
+    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+    
+    IF /I "%hacerPull%"=="si" (
+        git pull --rebase
+        IF %ERRORLEVEL% NEQ 0 (
+            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+            pause
+            GOTO END_SCRIPT
+        )
+    )
+	
+	IF %ERRORLEVEL% EQU 0 (
+		echo Rebase exitoso. Reintentando la subida...
+		git push -u origin main
+	) ELSE (
+		echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+		pause
+		GOTO END_SCRIPT
+	)
+)
 git push -u origin main
 
 IF %ERRORLEVEL% NEQ 0 (
