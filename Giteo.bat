@@ -163,31 +163,32 @@ IF NOT EXIST ".git" (
 ) ELSE (
     echo Repositorio ya inicializado
     echo esta sección es para agregar en el repositorio correspondiente
+
     git add .
     git commit -m "%COMMIT_MESSAGE%"
 	rem esta sección es para dar control al pull
 )
 echo Intentando subir cambios a GitHub
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
-    echo Intentando sincronizar y subir de nuevo...
-    :: Implementación de la pregunta de control (IF)
-    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-    
-    IF /I "%hacerPull%"=="si" (
-        git pull --rebase
-        IF %ERRORLEVEL% NEQ 0 (
-            echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
-            pause
-            GOTO END_SCRIPT
-        )
-        IF %ERRORLEVEL% EQU 0 (
-        echo Rebase exitoso. Reintentando la subida...
-        git push -u origin main
-        )
-    )
-)
+
+@REM IF %ERRORLEVEL% NEQ 0 (
+@REM     echo.
+@REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
+@REM     echo Intentando sincronizar y subir de nuevo...
+@REM     :: Implementación de la pregunta de control (IF)
+@REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+@REM     IF /I "%hacerPull%"=="si" (
+@REM         git pull --rebase
+@REM         IF %ERRORLEVEL% NEQ 0 (
+@REM             echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
+@REM             pause
+@REM             GOTO END_SCRIPT
+@REM         )
+@REM         IF %ERRORLEVEL% EQU 0 (
+@REM         echo Rebase exitoso. Reintentando la subida...
+@REM         git push -u origin main
+@REM         )
+@REM     )
+@REM )
 git push -u origin main
 
 @REM IF %ERRORLEVEL% NEQ 0 (
@@ -207,6 +208,7 @@ git push -u origin main
 @REM     pause
 @REM     GOTO END_SCRIPT
 @REM )
+
 echo.
 echo ¡Giteo completado exitosamente!
 pause
