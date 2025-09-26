@@ -5,6 +5,60 @@ echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
 
+echo --- Qué lenguajes de programación querés crear un .gitignore ---
+
+
+echo 1. Python
+echo 2. JavaScript (Node.js)
+echo 3. C# (Visual Studio)
+echo 4. Java
+echo 5. Otro / Ninguno
+echo.
+
+:SELECT_LANGUAGE
+SET /P "leng_prog_opcion=Ingresa el numero del lenguaje que estas usando: "
+
+IF "%leng_prog_opcion%"=="1" (
+    CALL :CREATE_GITIGNORE "python"
+) ELSE IF "%leng_prog_opcion%"=="2" (
+    CALL :CREATE_GITIGNORE "javascript"
+) ELSE IF "%leng_prog_opcion%"=="3" (
+    CALL :CREATE_GITIGNORE "csharp"
+) ELSE IF "%leng_prog_opcion%"=="4" (
+    CALL :CREATE_GITIGNORE "java"
+) ELSE IF "%leng_prog_opcion%"=="5" (
+    echo No se creara un archivo .gitignore.
+) ELSE (
+    echo Opcion no valida. Por favor, intenta de nuevo.
+    GOTO SELECT_LANGUAGE
+)
+
+:CREATE_GITIGNORE
+SET "LANG_TYPE=%~1"
+IF "%LANG_TYPE%"=="python" (
+    echo # Python >> .gitignore
+    echo __pycache__/ >> .gitignore
+    echo *.pyc >> .gitignore
+    echo .venv/ >> .gitignore
+) ELSE IF "%LANG_TYPE%"=="javascript" (
+    echo # Node.js >> .gitignore
+    echo node_modules/ >> .gitignore
+    echo .env >> .gitignore
+) ELSE IF "%LANG_TYPE%"=="csharp" (
+    echo # C# >> .gitignore
+    echo bin/ >> .gitignore
+    echo obj/ >> .gitignore
+) ELSE IF "%LANG_TYPE%"=="java" (
+    echo # Java >> .gitignore
+    echo *.class >> .gitignore
+    echo *.log >> .gitignore
+    echo /bin/ >> .gitignore
+    echo /target/ >> .gitignore
+    echo .project >> .gitignore
+    echo .classpath >> .gitignore
+)
+echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
+
 :: --- CONFIGURACION DE MENSAJES DE COMMIT ---
 :: Define tus mensajes de commit predefinidos aquí
 
@@ -97,24 +151,36 @@ echo.
 :: --- SECCIÓN PARA INICIAR REPOSITORIO ---
 :: Esta parte solo se ejecuta si la carpeta .git no existe
 IF NOT EXIST ".git" (
-    echo Inicializando nuevo repositorio...
-    git init
-    git add .
-    git commit -m "%COMMIT_MESSAGE%"
-    git branch -M main
-    :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
-    SET /P "URL=Ingresa la URL del repositorio de GitHub: "
-    git remote add origin %URL%
-) ELSE (
-    echo Repositorio ya inicializado.
-    echo esta sección es para agregar en el repositorio correspondiente
-    git add .
-    git commit -m "%COMMIT_MESSAGE%"
-	rem esta sección es para dar control al pull
-    git pull --rebase
-)
+    echo Inicializando nuevo repositorio...
+    git init
+    git add .
+    git commit -m "%COMMIT_MESSAGE%"
+    git branch -M main
 
-    git push -u origin main
+    IF NOT EXIST repositorio_url.txt (
+        SET /P "URL=Ingresa la URL del repositorio de GitHub: "
+        echo %URL%>repositorio_url.txt
+        git remote add origin %URL%
+    ) ELSE (
+        SET /P URL=<repositorio_url.txt
+        git remote add origin %URL%
+    )
+
+    git push -u origin main
+
+) ELSE (
+    echo Repositorio ya inicializado.
+    echo Asegurando que el repositorio local este actualizado...
+    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
+    IF /I "%hacerPull%"=="si" git pull --rebase
+
+    echo Agregando y commiteando los nuevos cambios...
+    git add .
+    git commit -m "%COMMIT_MESSAGE%"
+
+    echo Subiendo los cambios a GitHub...
+    git push -u origin main
+)
 IF %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: Hubo un CONFLICTO DE FUSION.
