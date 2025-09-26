@@ -1,7 +1,5 @@
 @echo off
-setlocal EnableDelayedExpansion
-chcp 65001 >nul
-
+chcp 65001
 echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
@@ -127,7 +125,7 @@ GOTO CONTINUE_GIT_OPERATIONS
 :CUSTOM_MESSAGE
 SET /P "COMMIT_MESSAGE=Commitea tu mensaje: "
 
-IF "%COMMIT_MESSAGE%"=="" ( 
+IF "!COMMIT_MESSAGE!"=="" ( 
     echo El mensaje personalizado no puede estar vacío.
     Volviendo al menú...
     GOTO SELECT_COMMIT_MSG
@@ -148,58 +146,29 @@ IF %INTERNET_STATUS% NEQ 0 (
     pause
     GOTO END_SCRIPT
 )
-
-echo Conexión a Internet detectada. Continuado con el giteo...
-
+echo.
+echo Conexión a Internet detectada. Continuado con el giteo
+echo.
 :: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
-
 IF NOT EXIST ".git" (
     echo Inicializando nuevo repositorio...
     git init
     git add .
     git commit -m "%COMMIT_MESSAGE%"
     git branch -M main
-    IF NOT EXIST repositorio_url.txt (
+    :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
     SET /P "URL=Ingresa la URL del repositorio de GitHub: "
-    echo %URL%>repositorio_url.txt
-    ) ELSE (
-        FOR /F "usebackq delims=" %%i in ("repositorio_url.txt") do set "URL=%%i"
-        echo Usando la URL del repositorio guardada: %URL%
-    )
     git remote add origin %URL%
-    git push -u origin main
 ) ELSE (
     echo Repositorio ya inicializado.
-    echo Asegurando que el repositorio local este actualizado...
-    SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-    IF /I "%hacerPull%"=="si" (
-        git pull --rebase
-        IF %ERRORLEVEL% NEQ 0 (
-            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
-            pause
-            GOTO END_SCRIPT
-        )
-    )
-    echo Agregando y commiteando los nuevos cambios...
+    echo esta sección es para agregar en el repositorio correspondiente
     git add .
     git commit -m "%COMMIT_MESSAGE%"
-    echo Subiendo los cambios a GitHub...
-    git push -u origin main
-    IF %ERRORLEVEL% NEQ 0 (
-        echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
-        echo Intentando sincronizar y subir de nuevo...
-        git pull --rebase
-        IF %ERRORLEVEL% EQU 0 (
-            echo Rebase exitoso. Reintentando la subida...
-            git push -u origin main
-        ) ELSE (
-            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
-            pause
-            GOTO END_SCRIPT
-        )
-    )
+	rem esta sección es para dar control al pull
+    git pull --rebase
 )
 
+    git push -u origin main
 IF %ERRORLEVEL% NEQ 0 (
     echo.
     echo ERROR: Hubo un CONFLICTO DE FUSION.
@@ -217,6 +186,27 @@ IF %ERRORLEVEL% NEQ 0 (
     pause
     GOTO END_SCRIPT
 )
+
+echo Intentando subir cambios a GitHub...
+git push -u origin main
+
+IF %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo ERROR: Hubo un CONFLICTO DE FUSION.
+    echo Git ha detenido la operacion.
+    echo.
+    echo Por favor, sigue estos pasos para resolverlo:
+    echo 1. Abre el editor de codigo y resuelve los conflictos.
+    echo 2. Una vez resueltos, usa la terminal para ejecutar:
+    echo    git add .
+    echo    git rebase --continue
+    echo.
+    echo Si quieres cancelar el rebase, usa:
+    echo git rebase --abort
+    echo.
+    pause
+    GOTO END_SCRIPT
+)
 echo.
 echo ¡Giteo completado exitosamente!
 pause
@@ -229,4 +219,5 @@ pause
         SET "INTERNET_STATUS=1"
     )
     GOTO :EOF
+
 :END_SCRIPT
