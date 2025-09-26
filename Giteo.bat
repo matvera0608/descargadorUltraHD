@@ -169,10 +169,10 @@ IF NOT EXIST ".git" (
     git add .
     git commit -m "%COMMIT_MESSAGE%"
 	rem esta sección es para dar control al pull
-    git rebase --abort
+    git pull --rebase
 )
 echo Intentando subir cambios a GitHub
-
+git push -u origin main
 @REM IF %ERRORLEVEL% NEQ 0 (
 @REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
 @REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
@@ -196,7 +196,7 @@ echo Intentando subir cambios a GitHub
 @REM         GOTO END_SCRIPT
 @REM     )
 @REM )
-git push -u origin main -f
+
 
 @REM IF %ERRORLEVEL% NEQ 0 (
 @REM     echo.
