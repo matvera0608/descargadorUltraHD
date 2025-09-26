@@ -1,6 +1,6 @@
 @echo off
-chcp 65001
-
+setlocal EnableDelayedExpansion
+chcp 65001 >nul
 echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
@@ -19,14 +19,14 @@ SET "msg9=Es súper útil esta herramienta de automatización, no es necesario e
 
 
 :: --- SELECCION DE LENGUAJE ---
-echo.
+echo((
 echo --- Qué lenguajes de programación querés crear un .gitignore ---
 echo 1. Python
 echo 2. JavaScript (Node.js)
 echo 3. C# (Visual Studio)
 echo 4. Java
 echo 5. Otro / Ninguno
-echo.
+echo((
 
 :SELECT_LANGUAGE
 SET /P "leng_prog_opcion=Ingresa el numero del lenguaje que estas usando: "
@@ -81,7 +81,7 @@ GOTO SELECT_COMMIT_MSG
     GOTO :EOF
 
 :SELECT_COMMIT_MSG
-echo.
+echo((
 echo --- Selecciona un mensaje de commit ---
 echo 1. %msg1%
 echo 2. %msg2%
@@ -93,9 +93,8 @@ echo 7. %msg7%
 echo 8. %msg8%
 echo 9. %msg9%
 echo 10. Ingresa un mensaje a tu gusto
-echo.
+echo((
 SET /P "opcion=Ingresa el número del mensaje o '10' para uno personalizado u otros números deseados: "
-
 
 IF "%opcion%"=="1" (
     SET "COMMIT_MESSAGE=%msg1%"
@@ -126,30 +125,31 @@ GOTO CONTINUE_GIT_OPERATIONS
 
 :CUSTOM_MESSAGE
 SET /P "COMMIT_MESSAGE=Commitea tu mensaje: "
-IF "%COMMIT_MESSAGE%"=="" (
-    echo El mensaje personalizado no puede estar vacío. Volviendo al menú...
+
+IF "!COMMIT_MESSAGE!"=="" ( 
+    echo El mensaje personalizado no puede estar vacío.
+    Volviendo al menú...
     GOTO SELECT_COMMIT_MSG
 )
 
-
 :CONTINUE_GIT_OPERATIONS
-echo.
+echo((
 echo Usando el mensaje: "%COMMIT_MESSAGE%"
-echo.
+echo((
 
 :: **** VERIFICACIÓN DE INTERNET ****
 CALL :CHECK_INTERNET
 IF %INTERNET_STATUS% NEQ 0 (
-    echo.
+    echo((
     echo ERROR: No se detectó la conexión a Internet.
     echo No se puede gitear sin conexión.
-    echo.
+    echo((
     pause
     GOTO END_SCRIPT
 )
-echo.
+
 echo Conexión a Internet detectada. Continuado con el giteo...
-echo.
+
 
 :: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
 IF NOT EXIST ".git" (
@@ -158,12 +158,12 @@ IF NOT EXIST ".git" (
     git add .
     git commit -m "%COMMIT_MESSAGE%"
     git branch -M main
-
     IF NOT EXIST repositorio_url.txt (
-        SET /P "URL=Ingresa la URL del repositorio de GitHub: "
-        echo %URL%>repositorio_url.txt
+    SET /P "URL=Ingresa la URL del repositorio de GitHub: "
+    echo %URL%>repositorio_url.txt
     ) ELSE (
-        SET /P URL=<repositorio_url.txt
+    for /f "usebackq delims=" %%i in ("repositorio_url.txt") do set "URL=%%i"
+    echo Usando la URL del repositorio guardada: %URL%
     )
     git remote add origin %URL%
     git push -u origin main
@@ -171,37 +171,53 @@ IF NOT EXIST ".git" (
     echo Repositorio ya inicializado.
     echo Asegurando que el repositorio local este actualizado...
     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-    IF /I "%hacerPull%"=="si" git pull --rebase
-
+    IF /I "%hacerPull%"=="si" (
+        git pull --rebase
+        IF %ERRORLEVEL% NEQ 0 (
+            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+            pause
+            GOTO END_SCRIPT
+        )
+    )
     echo Agregando y commiteando los nuevos cambios...
     git add .
     git commit -m "%COMMIT_MESSAGE%"
-
     echo Subiendo los cambios a GitHub...
     git push -u origin main
+    IF %ERRORLEVEL% NEQ 0 (
+        echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
+        echo Intentando sincronizar y subir de nuevo...
+        git pull --rebase
+        IF %ERRORLEVEL% EQU 0 (
+            echo Rebase exitoso. Reintentando la subida...
+            git push -u origin main
+        ) ELSE (
+            echo ERROR: No se pudo hacer el pull/rebase. Revisa los conflictos.
+            pause
+            GOTO END_SCRIPT
+        )
+    )
 )
 
 IF %ERRORLEVEL% NEQ 0 (
-    echo.
+    echo((
     echo ERROR: Hubo un CONFLICTO DE FUSION.
     echo Git ha detenido la operacion.
-    echo.
+    echo((
     echo Por favor, sigue estos pasos para resolverlo:
     echo 1. Abre el editor de codigo y resuelve los conflictos.
     echo 2. Una vez resueltos, usa la terminal para ejecutar:
     echo    git add .
     echo    git rebase --continue
-    echo.
+    echo((
     echo Si quieres cancelar el rebase, usa:
     echo    git rebase --abort
-    echo.
+    echo((
     pause
     GOTO END_SCRIPT
 )
-
-echo.
+echo((
 echo ¡Giteo completado exitosamente!
-
 pause
 
 :CHECK_INTERNET
@@ -214,4 +230,3 @@ pause
     GOTO :EOF
 	
 :END_SCRIPT
-pause
