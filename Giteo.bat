@@ -172,7 +172,7 @@ IF NOT EXIST ".git" (
     git pull --rebase
 )
 echo Intentando subir cambios a GitHub
-git push -u origin main
+git push
 @REM IF %ERRORLEVEL% NEQ 0 (
 @REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
 @REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
