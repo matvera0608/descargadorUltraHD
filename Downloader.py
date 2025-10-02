@@ -14,28 +14,55 @@ def optar(url):
     
     print("\nOpciones de calidad: \n")
     print("1 - Mejor calidad disponible (video + audio)")
-    print("2 - Mejor calidad hasta 1080p (evita 4K)")
-    print("3 - Descargar sólo el sonido de la mejor calidad")
-    print("4 - Elegir manualmente de la lista")
+    # print("2 - Mejor calidad hasta 1080p (evita 4K)")
+    print("2 - Descargar sólo el sonido de la mejor calidad")
+    print("3 - Elegir manualmente de la lista")
     
     opción = input("\nIntroduce el código de formato deseado: ").strip()
     
     match opción:
         case "1":
-            return "bestvideo+bestaudio/best"
+            return (
+            "bestvideo+bestaudio/best",
+            [
+                {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}
+            ],
+            )
+        # case "2":
+        #     return "bestvideo[height<=1080]+bestaudio/best[height<=1080]"
         case "2":
-            return "bestvideo[height<=1080]+bestaudio/best[height<=1080]"
+            return (
+            "bestaudio/best",
+            [
+                {"key": "FFmpegExtractAudio", "preferredcodec": "aac", "preferredquality": "192"}
+            ],
+            )
         case "3":
-            return "bestaudio/best"
-        case "4":
             listarCalidadesSegúnPágina(url)
             formato = input("\nIntroduce el código de formato deseado: ")
             return formato
         case _:
             print("\nOpción inválida, se seleccionará la mejor calidad disponible por defecto.")
-            return "bestvideo+bestaudio/best"
+            return ("bestvideo+bestaudio/best",
+            [
+                {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"}
+            ],
+            )
 
-def descargar_videos():
+def descargar_subtítulos():
+    opción = input("¿Querés descargar los subtítulos? ").lower().strip()
+    if opción in ["si", "s"]:
+        return {
+        "writesubtitles": True,
+        "writeautomaticsub": True,
+        "subtitleslangs": ["all"],
+        "subtitlesformat": "srt",
+    }
+    else:
+        print("Se descarga sin subtítulos.")
+        return {}
+
+def descargar():
     cant_video = input("Introduce la cantidad de videos que deseas descargar: ").strip()
     while not cant_video.isdigit() or int(cant_video) <= 0:
         print("La cantidad debe ser un número positivo.")
@@ -47,9 +74,10 @@ def descargar_videos():
             url = obtenerURL()
         formato = optar(url)
         print(f"\nDescargando video {cant + 1} de {cant_video}...")
+        subtítulos = descargar_subtítulos()
         ydl_opts = {
             "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
-            "format": f"{formato}",
+            "format": formato,
             "merge_output_format": "mp4",
             "noplaylist": True,
             "nooverwrites": True,
@@ -58,16 +86,19 @@ def descargar_videos():
             "preferedformat": "mp4"
             }]
         }
+        if isinstance(subtítulos, dict):
+            ydl_opts.update(subtítulos)
         try:
             with YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
                     print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
+
         except Exception as excepción:
             if "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
             else:
                 print("\n Error al descargar el video: {}".format(excepción))
 
-descargar_videos()
+descargar()
 
 print(input("\nDescarga completada con audio convertido a AAC compatible."))
