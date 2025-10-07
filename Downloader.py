@@ -5,6 +5,8 @@ import os, glob, string, re
 from Subtitulation import descargar_subtítulos, limpiar_repeticiones
 from Cookies import obtener_cookies
 
+os.system(".\Giteo.bat")
+
 def obtenerURL():
     return input("\nIntroduce el link del video: ")
 
