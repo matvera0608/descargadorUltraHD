@@ -1,6 +1,9 @@
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 from yt_dlp.utils import sanitize_filename
-import os, glob, string, re, shutil
+import os, glob, string, re
+from Subtitulation import descargar_subtítulos, limpiar_repeticiones
+from Cookies import obtener_cookies
 
 def obtenerURL():
     return input("\nIntroduce el link del video: ")
@@ -49,89 +52,7 @@ def optar(url):
                 ],
             )
 
-def descargar_subtítulos(url):
-    opción = input("¿Querés descargar los subtítulos? ").lower().strip()
-    def listar_lenguas(url):
-        ydl_opts_info = {"listsubtitles": True}
-        with YoutubeDL(ydl_opts_info) as ydl:
-            ydl.extract_info(url, download=False)
-    if opción in ["si", "s", "sí"]:
-        listar_lenguas(url)
-        if "bilibili" in url:
-            idioma = "zh-Hans"
-            return {       
-                        "cookiesfrombrowser": "edge",  # o "edge", "brave", "firefox"
-                        "writesubtitles": True,
-                        "subtitleslangs": [idioma],
-                        "subtitlesformat": "srt",
-                    }
-        else:
-            idioma = input("¿En qué idioma está el video? ").lower().strip() or "es"
 
-        return {
-        "writesubtitles": True,
-        "writeautomaticsub": True,
-        "subtitleslangs": [idioma],
-        "subtitlesformat": "srt",
-    }
-    else:
-        return {}
-
-def limpiar_repeticiones(ruta_srt):
-    def normalizar_texto(texto):
-        return texto.lower().translate(str.maketrans("", "", string.punctuation))
-    
-    # backup = ruta_srt.replace(".srt", "_backup.srt")
-    # shutil.copy(ruta_srt, backup)
-    
-    with open(ruta_srt, "r", encoding="utf-8") as archivo:
-        contenido = archivo.read().strip()
-    
-       
-    bloques = re.split(r"\n\s*\n", contenido.strip())
-    bloques_limpios = []
-    tiempo_anterior = ""
-    texto_anterior = ""
-    repeticiónEliminada = 0
-    for bloque in bloques:
-        lineas = bloque.splitlines()
-        if len(lineas) < 3:
-            bloques_limpios.append(bloque)
-            continue
-        
-        tiempo = lineas[1].strip()
-        texto = " ".join(lineas[2:]).strip()
-        textoNormalizado = normalizar_texto(texto)
-
-        repetición = False
-        if texto_anterior:
-            # Si más del 70% del texto anterior está incluido en el actual, se considera repetición
-            interseccion = len(set(texto_anterior.split()) & set(textoNormalizado.split()))
-            proporcion = interseccion / max(len(texto.split()), 1)
-            
-            #Se creó una variable para tener más control de los segmentos de la oración, esto es para que
-            #a la hora de limpiar subtítulos se pueda garantizar que dice con el fin de traducir a otro idioma
-            fin_anterior = tiempo_anterior.split(" --> ")[1].strip()
-            inicio_actual = tiempo.split(" --> ")[0].strip()
-
-            if proporcion > 0.8 and fin_anterior == inicio_actual:
-                repetición = True
-        
-        if repetición:
-            repeticiónEliminada += 1
-            print(f"Total de repeticiones eliminadas: {lineas[0]}")
-        else:
-            bloques_limpios.append(bloque)
-            texto_anterior = textoNormalizado
-            tiempo_anterior = tiempo
-    
-    print(f"✔ Limpieza completada. Repeticiones eliminadas: {repeticiónEliminada}")
-    # Guardar el nuevo archivo limpio
-    contenido_final = "\n\n".join(bloques_limpios)
-    ruta_limpia = ruta_srt.replace(".srt", "_limpio.srt")
-    with open(ruta_limpia, "w", encoding="utf-8") as archivo:
-        archivo.write(contenido_final)
-    
 def descargar():
     cant_video = input("Introduce la cantidad que deseas descargar: ").strip()
     while not cant_video.isdigit() or int(cant_video) <= 0:
@@ -157,7 +78,11 @@ def descargar():
                 "-b:a", "192k" 
                 ],
             }
+        
+        ydl_opts.update(obtener_cookies()) #Acá obtengo los cookies de cualquier video, esta función está modularizada.
+        
         subtítulos = descargar_subtítulos(url)
+        
         ydl_opts.update(subtítulos)
         try:
             print(f"\nDescargando {cant + 1} de {cant_video}...")
@@ -180,7 +105,7 @@ def descargar():
                 else:
                     print("No se encontró el subtítulo")
                 
-        except Exception as excepción:
+        except DownloadError as excepción:
             if "No video formats found" in str(excepción):
                 print("\n⚠ No se pudo descargar el video.")
                 print("👉 Posibles causas:")
