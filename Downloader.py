@@ -1,6 +1,6 @@
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import sanitize_filename
-import os, glob, difflib
+import os, glob, difflib, re
 
 def obtenerURL():
     return input("\nIntroduce el link del video: ")
@@ -73,9 +73,41 @@ def descargar_subtítulos(url):
 
 def limpiar_repeticiones(ruta_srt):
     with open(ruta_srt, "r", encoding="utf-8") as archivo:
-        líneas = archivo.readlines()
-        
-    bloque = ""
+        contenido = archivo.readlines()
+          
+    bloques = re.split(r"\n\s\n", contenido.strip())
+    bloques_limpios = []
+    texto_anterior = ""
+    
+    for bloque in bloques:
+        lineas = bloque.splitlines()
+
+        # Si el bloque tiene menos de 3 líneas, lo saltamos (no parece válido)
+        if len(lineas) < 3:
+            bloques_limpios.append(bloque)
+            continue
+
+        texto = " ".join(lineas[2:]).strip()
+
+        # Limpieza de repeticiones parciales (más tolerante)
+        if texto_anterior:
+            # Si más del 70% del texto anterior está incluido en el actual, se considera repetición
+            interseccion = len(set(texto_anterior.split()) & set(texto.split()))
+            proporcion = interseccion / max(len(texto.split()), 1)
+
+            if proporcion > 0.7:
+                # fusionar con el texto anterior
+                texto = texto_anterior + " " + " ".join([palabra for palabra in texto.split() if palabra not in texto_anterior.split()])
+
+    
+    bloque_nuevo = ""
+    bloques_limpios.append(bloque_nuevo)
+    texto_anterior = ""
+    
+    # Guardar el nuevo archivo limpio
+    contenido_final = "\n\n".join(bloques_limpios)
+    with open(ruta_srt, "w", encoding="utf-8") as archivo:
+        archivo.write(contenido_final)
     
 def descargar():
     cant_video = input("Introduce la cantidad de videos que deseas descargar: ").strip()
@@ -128,7 +160,7 @@ def descargar():
             if "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
             else:
-                print("\n Error al descargar el video: {}".format(excepción))
+                print(f"\n Error al descargar el video: {excepción}")
 
 descargar()
 
