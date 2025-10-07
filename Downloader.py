@@ -1,4 +1,6 @@
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import sanitize_filename
+import os, glob, difflib
 
 def obtenerURL():
     return input("\nIntroduce el link del video: ")
@@ -47,7 +49,6 @@ def optar(url):
                 ],
             )
 
-
 def descargar_subtítulos(url):
     opción = input("¿Querés descargar los subtítulos? ").lower().strip()
     def listar_lenguas(url):
@@ -70,6 +71,12 @@ def descargar_subtítulos(url):
     else:
         return {}
 
+def limpiar_repeticiones(ruta_srt):
+    with open(ruta_srt, "r", encoding="utf-8") as archivo:
+        líneas = archivo.readlines()
+        
+    bloque = ""
+    
 def descargar():
     cant_video = input("Introduce la cantidad de videos que deseas descargar: ").strip()
     while not cant_video.isdigit() or int(cant_video) <= 0:
@@ -101,9 +108,22 @@ def descargar():
         try:
             print(f"\nDescargando video {cant + 1} de {cant_video}...")
             with YoutubeDL(ydl_opts) as ydl:
-                    ydl.download([url])
+                    info = ydl.extract_info(url)
                     print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
-
+            
+            if subtítulos:
+                título = info.get("title", "video")
+                patrón = sanitize_filename(título) + "*.srt"
+                ubicación = os.path.join(r"C:\Users\veram\Downloads", patrón)
+                
+                archivo_srt = glob.glob(ubicación)
+                
+                if archivo_srt:
+                    limpiar_repeticiones(archivo_srt[0])
+                    print("Subtitulo limpio descargado exitosamente")
+                else:
+                    print("No se encontró el subtítulo")
+                
         except Exception as excepción:
             if "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
