@@ -3,6 +3,7 @@ from yt_dlp.utils import DownloadError
 from yt_dlp.utils import sanitize_filename
 import os, glob
 from Subtitulation import descargar_subtítulos, limpiar_repeticiones
+from Cookies import mover_cookies
 # from Cookies import obtener_cookies
 
 os.system(".\Giteo.bat")
@@ -40,7 +41,6 @@ def listarCalidadesSegúnPágina(url):
     with YoutubeDL(ydl_opts_info) as ydl:
             ydl.extract_info(url, download=False)
 
-
 def optar(url):
     print("\nOpciones de calidad: \n")
     print("1 - Mejor calidad disponible (video + audio)")
@@ -77,8 +77,8 @@ def optar(url):
                 ],
             )
 
-
 def descargar():
+    mover_cookies()
     cant_video = input("Introduce la cantidad que deseas descargar: ").strip()
     while not cant_video.isdigit() or int(cant_video) <= 0:
         print("La cantidad debe ser un número positivo.")
@@ -104,22 +104,14 @@ def descargar():
             ],
             }
         
-        # ydl_opts.update(obtener_cookies())
-        
         subtítulos = descargar_subtítulos(url)
         
-        for opts in subtítulos:
-            # ydl_opts.update(subtítulos)
-            try:
-                print(f"\nDescargando {cant + 1} de {cant_video}...")
-                with YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url)
-                print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
-                break
-            except Exception as e:
-                print(f"⚠ Falló con {opts['cookiesfrombrowser'][0]}: {e}")
-                
-        try:    
+        ydl_opts.update(subtítulos)
+        print(f"\nDescargando {cant + 1} de {cant_video}...")
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url)
+            
             if subtítulos:
                 
                 título = info.get("title", "video")
@@ -134,14 +126,12 @@ def descargar():
                     print("Subtitulo limpio descargado exitosamente")
                 else:
                     print("No se encontró el subtítulo")
+  
+            print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")   
                 
         except DownloadError as excepción:
-            if "No video formats found" in str(excepción):
-                print("\n⚠ No se pudo descargar el video.")
-                print("👉 Posibles causas:")
-                print("   - Necesitás actualizar yt-dlp (ejecutá: yt-dlp -U o pip install -U yt-dlp).")
-                print("   - El video puede requerir iniciar sesión (usa cookiesfrombrowser).")
-                print("   - El video puede estar restringido (VIP o bloqueado por región).")
+            if "No video formats found" in str(e):
+                print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
             elif "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
             else:
