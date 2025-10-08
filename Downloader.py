@@ -1,24 +1,47 @@
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 from yt_dlp.utils import sanitize_filename
-import os, glob, string, re
+import os, glob
 from Subtitulation import descargar_subtítulos, limpiar_repeticiones
-from Cookies import obtener_cookies
+# from Cookies import obtener_cookies
 
 os.system(".\Giteo.bat")
+
+
+# Esta función lo que hace es intentar descargar la información de un video, en caso de la falla imprime con un mensaje
+# y vuelve a intentar con un proxy chino (esto es útil para BiliBili que a veces falla)
+def extraer_info_seguro(url, opciones):
+    try:
+        with YoutubeDL(opciones) as ydl:
+            return ydl.extract_info(url)
+    except DownloadError as e:
+        if "BiliBili" in str(e) and "No video formats found" in str(e):
+            print("⚠ Error con el extractor BiliBili. Reintentando con proxy CN...")
+            opciones["proxy"] = "https://cn.bilibili.com"  # redirige a servidor chino
+            opciones["skip_download"] = True
+            opciones["forcejson"] = True
+            try:
+                with YoutubeDL(opciones) as ydl:
+                    return ydl.extract_info(url)
+            except Exception as e2:
+                print("❌ Fallback también falló:", e2)
+                return None
+        else:
+            raise e
 
 def obtenerURL():
     return input("\nIntroduce el link del video: ")
 
+def listarCalidadesSegúnPágina(url):
+    ydl_opts_info = {
+        "listformats": True,
+        }
+    print("\n LISTA DE CALIDADES DISPONIBLES \n")
+    with YoutubeDL(ydl_opts_info) as ydl:
+            ydl.extract_info(url, download=False)
+
+
 def optar(url):
-    def listarCalidadesSegúnPágina(url):
-        ydl_opts_info = {
-            "listformats": True,
-            }
-        print("\n LISTA DE CALIDADES DISPONIBLES \n")
-        with YoutubeDL(ydl_opts_info) as ydl:
-                ydl.extract_info(url, download=False)
-    
     print("\nOpciones de calidad: \n")
     print("1 - Mejor calidad disponible (video + audio)")
     print("2 - Descargar sólo el sonido de la mejor calidad")
@@ -78,20 +101,25 @@ def descargar():
                 "-c:v", "copy",
                 "-c:a", "aac",
                 "-b:a", "192k" 
-                ],
+            ],
             }
         
-        ydl_opts.update(obtener_cookies()) #Acá obtengo los cookies de cualquier video, esta función está modularizada.
+        # ydl_opts.update(obtener_cookies())
         
         subtítulos = descargar_subtítulos(url)
         
-        ydl_opts.update(subtítulos)
-        try:
-            print(f"\nDescargando {cant + 1} de {cant_video}...")
-            with YoutubeDL(ydl_opts) as ydl:
+        for opts in subtítulos:
+            # ydl_opts.update(subtítulos)
+            try:
+                print(f"\nDescargando {cant + 1} de {cant_video}...")
+                with YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url)
-                    print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
-            
+                print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")
+                break
+            except Exception as e:
+                print(f"⚠ Falló con {opts['cookiesfrombrowser'][0]}: {e}")
+                
+        try:    
             if subtítulos:
                 
                 título = info.get("title", "video")
