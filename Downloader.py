@@ -6,9 +6,6 @@ from Subtitulation import descargar_subtítulos, limpiar_repeticiones
 from Cookies import mover_cookies
 # from Cookies import obtener_cookies
 
-os.system(".\Giteo.bat")
-
-
 # Esta función lo que hace es intentar descargar la información de un video, en caso de la falla imprime con un mensaje
 # y vuelve a intentar con un proxy chino (esto es útil para BiliBili que a veces falla)
 def extraer_info_seguro(url, opciones):
@@ -78,13 +75,19 @@ def optar(url):
             )
 
 def descargar():
-    mover_cookies()
     cant_video = input("Introduce la cantidad que deseas descargar: ").strip()
     while not cant_video.isdigit() or int(cant_video) <= 0:
         print("La cantidad debe ser un número positivo.")
         cant_video = input("Introduce la cantidad que deseas descargar: ").strip()
     for cant in range(int(cant_video)):
         url = obtenerURL()
+        if "bilibili" in url:
+            if not os.path.exists(r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt"):
+                mover_cookies()
+            else:
+                print("✅ cookies.txt ya está en la ubicación correcta. Continuando...")
+                
+                
         while "http" not in url or url.strip() == "":
             print("\n URL inválida, por favor introduce una URL válida.")
             url = obtenerURL()
@@ -111,7 +114,8 @@ def descargar():
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url)
-            
+                if "bilibili" in url:
+                    extraer_info_seguro(url, ydl_opts)
             if subtítulos:
                 
                 título = info.get("title", "video")
@@ -130,7 +134,7 @@ def descargar():
             print("\n Video descargado COMPLETAMENTE, QUE SASTISFACTORIO.\n")   
                 
         except DownloadError as excepción:
-            if "No video formats found" in str(e):
+            if "No video formats found" in str(excepción):
                 print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
             elif "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
