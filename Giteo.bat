@@ -110,7 +110,7 @@ echo 16. %msg16%
 echo 17. %msg17%
 echo 18. Ingresa un mensaje a tu gusto
 echo.
-SET /P "opcion=Ingresa el número del mensaje o '10' para uno personalizado u otros números deseados: "
+SET /P "opcion=Ingresa el número del mensaje o '18' para uno personalizado u otros números deseados: "
 
 IF "%opcion%"=="1" (
     SET "COMMIT_MESSAGE=%msg1%"
@@ -146,7 +146,7 @@ IF "%opcion%"=="1" (
     SET "COMMIT_MESSAGE=%msg16%"
 ) ELSE IF "%opcion%"=="17" (
     SET "COMMIT_MESSAGE=%msg17%"
-) ELSE IF "%opcion%"=="25" (
+) ELSE IF "%opcion%"=="18" (
     GOTO CUSTOM_MESSAGE
 ) ELSE (
     color 0C
@@ -184,24 +184,24 @@ echo.
 echo Conexión a Internet detectada. Continuado con el giteo
 echo.
 
-:FULL_BACKUP
-echo.
-echo --- Subida completa forzada ---
-echo Agregando todos los archivos, incluso nuevos o ignorados...
-git add -f .
-git status
-pause
-git commit -m "%COMMIT_MESSAGE%"
-git push -u origin main
-echo.
-echo ¡Respaldo completo realizado!
-GOTO END_SCRIPT
+@REM :FULL_BACKUP
+@REM echo.
+@REM echo --- Subida completa forzada ---
+@REM echo Agregando todos los archivos, incluso nuevos o ignorados...
+@REM git add .
+@REM git status
+@REM pause
+@REM git commit -m "%COMMIT_MESSAGE%"
+@REM git push -u origin main
+@REM echo.
+@REM echo ¡Respaldo completo realizado!
+@REM GOTO END_SCRIPT
 
 :: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
 IF NOT EXIST ".git" (
     echo Inicializando nuevo repositorio...
     git init
-    git add -f .
+    git add .
     git commit -m "%COMMIT_MESSAGE%"
     git branch -M main
     :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
@@ -210,7 +210,7 @@ IF NOT EXIST ".git" (
 ) ELSE (
     echo Repositorio ya inicializado
     echo esta sección es para agregar en el repositorio correspondiente
-    git add -f .
+    git add .
     git commit -m "%COMMIT_MESSAGE%"
     git push -u origin main
 )
