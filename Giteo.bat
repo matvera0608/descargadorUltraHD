@@ -23,7 +23,7 @@ SET "msg13=Ajustes de formato y linting."
 SET "msg14=Realizando actualización de dependencias."
 SET "msg15=Actualización del README con pasos de instalación."
 SET "msg16=Primer commit con estructura base."
-SET "msg17=Programa inicial hecho por mi."
+SET "msg17=Respaldo completado exitosamente."
 
 
 :: --- SELECCION DE LENGUAJE ---
@@ -188,8 +188,10 @@ echo.
 echo.
 echo --- Subida completa forzada ---
 echo Agregando todos los archivos, incluso nuevos o ignorados...
-git add --all
-git commit -m "Respaldo completo"
+git add -f .
+git status
+pause
+git commit -m "%COMMIT_MESSAGE%"
 git push -u origin main
 echo.
 echo ¡Respaldo completo realizado!
@@ -210,10 +212,39 @@ IF NOT EXIST ".git" (
     echo esta sección es para agregar en el repositorio correspondiente
     git add -f .
     git commit -m "%COMMIT_MESSAGE%"
-
+    git push -u origin main
 )
 echo Intentando subir cambios a GitHub
-git push -u origin main
+:: --- MANEJO DE ERROR REJECTED (La clave para la automatización) ---
+IF %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
+    echo Intentando sincronizar y subir de nuevo...
+    
+    :: AUTOMATIZACIÓN: Usar git pull --rebase para sincronizar
+    git pull --rebase 
+    
+    IF %ERRORLEVEL% NEQ 0 (
+        :: CONFLICTO REAL (Detener y mostrar pasos manuales)
+        echo.
+        echo ERROR: No se pudo hacer el pull/rebase. Hubo un conflicto de fusion.
+        echo.
+        echo Por favor, sigue estos pasos para resolverlo:
+        echo 1. Abre el editor de codigo y resuelve los conflictos.
+        echo 2. Una vez resueltos, usa la terminal para ejecutar:
+        echo    git add .
+        echo    git rebase --continue
+        echo.
+        echo Si quieres cancelar el rebase, usa:
+        echo git rebase --abort
+        echo.
+        pause
+        GOTO END_SCRIPT
+    ) ELSE (
+        :: Rebase exitoso, reintentar push
+        echo Rebase exitoso. Reintentando la subida...
+        git push -u origin main
+    )
 
 
 echo.
