@@ -1,10 +1,9 @@
 @echo off
 chcp 65001
+setlocal enabledelayedexpansion
 echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
-
-:: while(1) { .\Giteo.bat; Start-Sleep -s 1; Clear-Host }
 
 :: --- VARIABLES DE MENSAJES DE COMMIT ---
 
@@ -17,6 +16,14 @@ SET "msg6=Archivos actualizados para la entrega."
 SET "msg7=Subida del contenido actualizado."
 SET "msg8=Se implementó muchos detalles y ajustes."
 SET "msg9=Es súper útil esta herramienta de automatización, no es necesario escribir código uno por uno."
+SET "msg10=Este programa está de lujo."
+SET "msg11=En arreglos."
+SET "msg12=Arreglado problema de optimización"
+SET "msg13=Ajustes de formato y linting."
+SET "msg14=Realizando actualización de dependencias."
+SET "msg15=Actualización del README con pasos de instalación."
+SET "msg16=Primer commit con estructura base."
+SET "msg17=Programa inicial hecho por mi."
 
 
 :: --- SELECCION DE LENGUAJE ---
@@ -93,7 +100,15 @@ echo 6. %msg6%
 echo 7. %msg7%
 echo 8. %msg8%
 echo 9. %msg9%
-echo 10. Ingresa un mensaje a tu gusto
+echo 10. %msg10%
+echo 11. %msg11%
+echo 12. %msg12%
+echo 13. %msg13%
+echo 14. %msg14%
+echo 15. %msg15%
+echo 16. %msg16%
+echo 17. %msg17%
+echo 18. Ingresa un mensaje a tu gusto
 echo.
 SET /P "opcion=Ingresa el número del mensaje o '10' para uno personalizado u otros números deseados: "
 
@@ -116,8 +131,25 @@ IF "%opcion%"=="1" (
 ) ELSE IF "%opcion%"=="9" (
     SET "COMMIT_MESSAGE=%msg9%"
 ) ELSE IF "%opcion%"=="10" (
+    SET "COMMIT_MESSAGE=%msg10%"
+) ELSE IF "%opcion%"=="11" (
+    SET "COMMIT_MESSAGE=%msg11%"
+) ELSE IF "%opcion%"=="12" (
+    SET "COMMIT_MESSAGE=%msg12%"
+) ELSE IF "%opcion%"=="13" (
+    SET "COMMIT_MESSAGE=%msg13%"
+) ELSE IF "%opcion%"=="14" (
+    SET "COMMIT_MESSAGE=%msg14%"
+) ELSE IF "%opcion%"=="15" (
+    SET "COMMIT_MESSAGE=%msg15%"
+) ELSE IF "%opcion%"=="16" (
+    SET "COMMIT_MESSAGE=%msg16%"
+) ELSE IF "%opcion%"=="17" (
+    SET "COMMIT_MESSAGE=%msg17%"
+) ELSE IF "%opcion%"=="25" (
     GOTO CUSTOM_MESSAGE
 ) ELSE (
+    color 0C
     echo Opción no válida. Por favor, intenta de nuevo.
     GOTO SELECT_COMMIT_MSG
 )
@@ -152,11 +184,22 @@ echo.
 echo Conexión a Internet detectada. Continuado con el giteo
 echo.
 
+:FULL_BACKUP
+echo.
+echo --- Subida completa forzada ---
+echo Agregando todos los archivos, incluso nuevos o ignorados...
+git add --all
+git commit -m "Respaldo completo"
+git push -u origin main
+echo.
+echo ¡Respaldo completo realizado!
+GOTO END_SCRIPT
+
 :: --- SECCIÓN PARA INICIAR O ACTUALIZAR REPOSITORIO ---
 IF NOT EXIST ".git" (
     echo Inicializando nuevo repositorio...
     git init
-    git add .
+    git add -f .
     git commit -m "%COMMIT_MESSAGE%"
     git branch -M main
     :: AGREGA ESTA LÍNEA SOLO LA PRIMERA VEZ
@@ -165,56 +208,13 @@ IF NOT EXIST ".git" (
 ) ELSE (
     echo Repositorio ya inicializado
     echo esta sección es para agregar en el repositorio correspondiente
-
-    git add .
+    git add -f .
     git commit -m "%COMMIT_MESSAGE%"
-	rem esta sección es para dar control al pull
-    rem git pull --rebase
-    git push -u origin main
+
 )
 echo Intentando subir cambios a GitHub
+git push -u origin main
 
-@REM IF %ERRORLEVEL% NEQ 0 (
-@REM     echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada. Intentando sincronizar y subir de nuevo...
-@REM     SET /P "hacerPull=¿Querés pullear antes de subir (si/no)?: "
-
-@REM     IF /I "%hacerPull%"=="si" (
-@REM         git pull --rebase
-        
-@REM         IF %ERRORLEVEL% NEQ 0 (
-@REM             echo ERROR: No se pudo hacer el pull/rebase, es necesario revisar los conflictos.
-@REM             pause
-@REM             GOTO END_SCRIPT
-@REM         )
-        
-@REM         IF %ERRORLEVEL% EQU 0 (
-@REM             echo Rebase exitoso. Reintentando la subida...
-@REM             git push -u origin main
-@REM         )
-@REM     ) ELSE (
-@REM         echo Operación de sincronización cancelada.
-@REM         pause
-@REM         GOTO END_SCRIPT
-@REM     )
-@REM )
-
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ERROR: Hubo un CONFLICTO DE FUSION.
-    echo Git ha detenido la operacion.
-    echo.
-    echo Por favor, sigue estos pasos para resolverlo:
-    echo 1. Abre el editor de codigo y resuelve los conflictos.
-    echo 2. Una vez resueltos, usa la terminal para ejecutar:
-    echo    git add .
-    echo    git rebase --continue
-    echo.
-    echo Si quieres cancelar el rebase, usa:
-    echo git rebase --abort
-    echo.
-    pause
-    GOTO END_SCRIPT
-)
 
 echo.
 echo ¡Giteo completado exitosamente!
