@@ -1,10 +1,9 @@
-from tkinter import messagebox as mensajeDeTexto
+from tkinter import messagebox as mensajeDeTexto, filedialog as diálogo
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import re
 from Subtitulation import descargar_subtítulos, limpiar_repeticiones
 from Cookies import mover_cookies
-# from Cookies import obtener_cookies
 
 # Esta función lo que hace es intentar descargar la información de un video, en caso de la falla imprime con un mensaje
 # y vuelve a intentar con un proxy chino (esto es útil para BiliBili que a veces falla)
@@ -48,13 +47,16 @@ def descargar(url, formato):
     urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
     
     if not url.strip() or not urlHTTP.match(url):
-        mensajeDeTexto.showerror("Error", "❌ URL no válida. Por favor, ingresá un enlace correcto.")
+        return
+    
+    destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
+    if not destino:
         return
     
     formatoYDL, procesoCodificación = optar(formato)
     
     ydl_opts = {
-        "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
+        "outtmpl": destino + "/%(title)s.%(ext)s",
         "format": formatoYDL,
         "merge_output_format": "mp4",
         "noplaylist": True,

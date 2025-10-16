@@ -1,8 +1,6 @@
 from yt_dlp import YoutubeDL
 import os, string, re
 from Cookies import contiene_sessdata
-
-os.system("yt-dlp -U")
 # yt-dlp --cookies C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt --list-subs https://www.bilibili.com/video/BV185HtzAEGX"
 
 
