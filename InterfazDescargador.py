@@ -1,6 +1,6 @@
 from tkinter import ttk as tkModerno
 import tkinter as tk
-import os
+import os, time
 from Downloader import descargar
 
 def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="readonly"):
@@ -14,6 +14,10 @@ def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10)):
 
 def crearBotón(contenedor, texto, comando, ancho=10, fuente=("Arial", 10), colorFondo="blue", colorLetra="white"):
      return tk.Button(contenedor, text=texto, command= lambda: comando(), width=ancho, font=fuente, bg=colorFondo, fg=colorLetra, cursor="hand2")
+
+def completar_descarga():
+     time.sleep(5)
+
 
 dirección = os.path.dirname(__file__)
 ícono = os.path.join(dirección, "descargador.ico")

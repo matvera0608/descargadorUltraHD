@@ -1,8 +1,7 @@
 from tkinter import messagebox as mensajeDeTexto
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
-from yt_dlp.utils import sanitize_filename
-import os, glob, re
+import re
 from Subtitulation import descargar_subtítulos, limpiar_repeticiones
 from Cookies import mover_cookies
 # from Cookies import obtener_cookies
@@ -71,6 +70,7 @@ def descargar(url, formato):
     try:
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
+            mensajeDeTexto.showinfo("ÉXITO", "LA DESCARGA FUE EXITOSA")
             return {"estado": "ok", "detalle": "Descargado EXITOSAMENTE"}
     except DownloadError as excepción:
         if "No video formats found" in str(excepción):
