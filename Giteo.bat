@@ -1,6 +1,6 @@
 @echo off
 chcp 65001
-setlocal enabledelayedexpansion
+SETLOCAL ENABLEDELAYEDEXPANSION
 echo Giteo.bat
 echo Iniciando subida a GitHub...
 echo ESTA HERRAMIENTA ES COMPATIBLE CON TODOS LOS LENGUAJES DE PROGRAMACIÓN: Pyhton, JavaScript, Java, C# Y ENTRE OTROS.
@@ -216,33 +216,6 @@ IF NOT EXIST ".git" (
 )
 echo Intentando subir cambios a GitHub
 git push -u origin main -f
-:: --- MANEJO DE ERROR REJECTED (La clave para la automatización) ---
-IF %ERRORLEVEL% NEQ 0 (
-    echo.
-    echo ERROR: Falló la subida (Rejected). Tu rama no está actualizada.
-    echo Intentando sincronizar y subir de nuevo...
-    color 0C
-    :: AUTOMATIZACIÓN: Usar git pull --rebase para sincronizar
-    git pull --rebase)
-    @REM IF %ERRORLEVEL% NEQ 0 (
-    @REM     :: CONFLICTO REAL (Detener y mostrar pasos manuales)
-    @REM     echo.
-    @REM     echo ERROR: No se pudo hacer el pull/rebase. Hubo un conflicto de fusion.
-    @REM     echo.
-    @REM     echo Por favor, sigue estos pasos para resolverlo:
-    @REM     echo 1. Abre el editor de codigo y resuelve los conflictos.
-    @REM     echo 2. Una vez resueltos, usa la terminal para ejecutar:
-    @REM     echo    git add .
-    @REM     echo    git rebase --continue
-    @REM     echo.
-    @REM     echo Si quieres cancelar el rebase, usa:
-    @REM     echo git rebase --abort
-    @REM     echo.
-    @REM     pause
-    @REM     GOTO END_SCRIPT) ELSE (
-    @REM     :: Rebase exitoso, reintentar push
-    @REM     echo Rebase exitoso. Reintentando la subida...
-    @REM     )
 
 
 echo.

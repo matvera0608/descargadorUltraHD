@@ -1,12 +1,13 @@
 from tkinter import ttk as tkModerno
 import tkinter as tk
-import os, time
+import os
 from Downloader import descargar
 
 dirección = os.path.dirname(__file__)
 ícono = os.path.join(dirección, "descargador.ico")
 
 os.system("yt-dlp -U")
+
 
 def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="readonly"):
      return tkModerno.Combobox(contenedor, values=valor, width=ancho, state=estado)
@@ -20,12 +21,11 @@ def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10)):
 def crearBotón(contenedor, texto, comando, ancho=10, fuente=("Arial", 10), colorFondo="blue", colorLetra="white", estado="disabled"):
      return tk.Button(contenedor, text=texto, command= lambda: comando(), width=ancho, font=fuente, bg=colorFondo, fg=colorLetra, cursor="hand2", state=estado)
 
-def completar_descarga():
-     time.sleep(5)
 
 def habilitar(evento=None):
      entry_Link.config(state="normal")
      btnDescargar.config(state="normal")
+
 
 interfaz = tk.Tk()
 interfaz.title("aTube Ramiro")
