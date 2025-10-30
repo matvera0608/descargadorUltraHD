@@ -146,7 +146,7 @@ GOTO :EOF
     echo.
     echo Intentando subir cambios a GitHub...
     echo.
-    git push -u origin main -f
+    git push -u origin main
     IF %ERRORLEVEL% NEQ 0 GOTO FALLO_DE_PUSHEO
     GOTO PUSHEO_EXITOSO
 
@@ -163,7 +163,7 @@ GOTO :EOF
         IF %ERRORLEVEL% EQU 0 GOTO PUSHEO_EXITOSO
         SET /A INTENTO_DE_PUSHEO+=1
         timeout /t 2 /nobreak >NUL
-        GOTO INTENTO_DE_PUSHEO
+        GOTO PUSHEO_INICIAL
     ) ELSE (
         echo 🚫 Fallo tras 5 intentos de sincronización.
         GOTO CONFLICTO
@@ -180,14 +180,14 @@ GOTO :EOF
     echo 3️⃣ Luego: git rebase --continue
     echo Si deseas abortar: git rebase --abort
     pause
-    GOTO END_SCRIPT
+GOTO END_SCRIPT
 
 :PUSHEO_EXITOSO
     color 0A
     echo.
     echo ✅ ¡Giteo completado exitosamente!
     echo Cambios subidos a GitHub correctamente.
-    GOTO END_SCRIPT
+
 
 :END_SCRIPT
     echo .........................................................................
