@@ -50,7 +50,7 @@ CALL :INICIAR_O_ACTUALIZAR
         echo Opcion no valida. Por favor, intenta de nuevo.
         GOTO SELECT_LANGUAGE
     )
-    GOTO :EOF
+GOTO :EOF
 
 echo .........................................................................
 
@@ -83,7 +83,7 @@ echo .........................................................................
         echo .classpath >> .gitignore
     )
     echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
-    GOTO :EOF
+GOTO :EOF
 
 
 :CHECK_INTERNET
@@ -138,7 +138,7 @@ echo .........................................................................
         git branch -M main
         GOTO PUSHEO_INICIAL
     )
-    GOTO :EOF
+GOTO :EOF
 
 
 :PUSHEO_INICIAL
@@ -148,7 +148,7 @@ echo .........................................................................
     git push -u origin main
     IF %ERRORLEVEL% NEQ 0 GOTO FALLO_DE_PUSHEO
     GOTO PUSHEO_EXITOSO
-
+GOTO :EOF
 
 :FALLO_DE_PUSHEO
     color 0C
@@ -167,7 +167,7 @@ echo .........................................................................
         echo 🚫 Falló tras 5 intentos de sincronización.
         GOTO CONFLICTO
     )
-    GOTO :EOF
+GOTO :EOF
 
 :CONFLICTO
     color 0C
@@ -186,7 +186,6 @@ echo .........................................................................
     color 0A
     echo.
     echo Cambios subidos a GitHub correctamente.
-
 
 :END_SCRIPT
     echo .........................................................................
