@@ -18,7 +18,6 @@ REM 🚀 --- FLUJO PRINCIPAL ---
 CALL :SELECT_LANGUAGE
 CALL :CHECK_INTERNET
 CALL :INICIAR_O_ACTUALIZAR
-GOTO END_SCRIPT
 
 :: ................................
 :: FUNCIONES PRINCIPALES
@@ -175,10 +174,10 @@ GOTO :EOF
     echo.
     echo ❌ ERROR DE FUSIÓN DETECTADO
     echo Para resolverlo:
-    echo 1️⃣ Abre tu editor y corrige los conflictos.
-    echo 2️⃣ Ejecuta: git add .
-    echo 3️⃣ Luego: git rebase --continue
-    echo Si deseas abortar: git rebase --abort
+    echo 1️⃣ Abre tu editor y corrige
+    echo 2️⃣ Ejecutar git add.
+    echo 3️⃣ Luego git rebase --continue
+    echo Si deseas abortar ejecuta git rebase --abort
     pause
 GOTO END_SCRIPT
 
