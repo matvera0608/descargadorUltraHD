@@ -18,7 +18,7 @@ REM 🚀 --- FLUJO PRINCIPAL --- BORRÉ PORQUE HABIA CIERTAS DUPLICACIONE
 CALL :SELECT_LANGUAGE
 CALL :CHECK_INTERNET
 CALL :INICIAR_O_ACTUALIZAR
-
+GOTO END_SCRIPT
 :: ................................
 :: FUNCIONES PRINCIPALES
 :: ................................
@@ -50,7 +50,7 @@ CALL :INICIAR_O_ACTUALIZAR
         echo Opcion no valida. Por favor, intenta de nuevo.
         GOTO SELECT_LANGUAGE
     )
-
+    GOTO :EOF
 
 echo .........................................................................
 
@@ -83,7 +83,7 @@ echo .........................................................................
         echo .classpath >> .gitignore
     )
     echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
-
+    GOTO :EOF
 
 
 :CHECK_INTERNET
@@ -186,6 +186,7 @@ GOTO :EOF
     color 0A
     echo.
     echo Cambios subidos a GitHub correctamente.
+    GOTO END_SCRIPT
 
 :END_SCRIPT
     echo .........................................................................
