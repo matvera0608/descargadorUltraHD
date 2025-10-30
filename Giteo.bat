@@ -50,7 +50,7 @@ CALL :INICIAR_O_ACTUALIZAR
         echo Opcion no valida. Por favor, intenta de nuevo.
         GOTO SELECT_LANGUAGE
     )
-GOTO :EOF
+
 
 echo .........................................................................
 
@@ -83,7 +83,7 @@ echo .........................................................................
         echo .classpath >> .gitignore
     )
     echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
-GOTO :EOF
+
 
 
 :CHECK_INTERNET
