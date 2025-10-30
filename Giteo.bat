@@ -18,7 +18,7 @@ REM 🚀 --- FLUJO PRINCIPAL --- BORRÉ PORQUE HABIA CIERTAS DUPLICACIONE
 CALL :SELECT_LANGUAGE
 CALL :CHECK_INTERNET
 CALL :INICIAR_O_ACTUALIZAR
-GOTO END_SCRIPT
+
 :: ................................
 :: FUNCIONES PRINCIPALES
 :: ................................
@@ -185,7 +185,6 @@ echo .........................................................................
     color 0A
     echo .........................................................................
     echo ¡Giteo completado exitosamente!  Cambios subidos a GitHub correctamente.
-    echo .........................................................................
     GOTO END_SCRIPT
 
 :END_SCRIPT
