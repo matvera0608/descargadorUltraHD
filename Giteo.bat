@@ -50,7 +50,7 @@ CALL :INICIAR_O_ACTUALIZAR
         echo Opcion no valida. Por favor, intenta de nuevo.
         GOTO SELECT_LANGUAGE
     )
-    GOTO :EOF
+GOTO :EOF
 
 echo .........................................................................
 
