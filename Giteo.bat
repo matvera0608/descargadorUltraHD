@@ -138,7 +138,7 @@ echo .........................................................................
         git branch -M main
         GOTO PUSHEO_INICIAL
     )
-GOTO :EOF
+    GOTO :EOF
 
 
 :PUSHEO_INICIAL
@@ -148,7 +148,7 @@ GOTO :EOF
     git push -u origin main
     IF %ERRORLEVEL% NEQ 0 GOTO FALLO_DE_PUSHEO
     GOTO PUSHEO_EXITOSO
-GOTO :EOF
+
 
 :FALLO_DE_PUSHEO
     color 0C
@@ -167,7 +167,7 @@ GOTO :EOF
         echo 🚫 Falló tras 5 intentos de sincronización.
         GOTO CONFLICTO
     )
-GOTO :EOF
+
 
 :CONFLICTO
     color 0C
@@ -181,16 +181,16 @@ GOTO :EOF
     pause
     GOTO END_SCRIPT
 
-
 :PUSHEO_EXITOSO
     color 0A
-    echo.
-    echo Cambios subidos a GitHub correctamente.
+    echo .........................................................................
+    echo ¡Giteo completado exitosamente!  Cambios subidos a GitHub correctamente.
+    echo .........................................................................
     GOTO END_SCRIPT
 
 :END_SCRIPT
     echo .........................................................................
-    echo ¡Giteo completado exitosamente!
+    echo Proceso Giteo finalizado.
     echo .........................................................................
     timeout /t 2 >NUL
     EXIT /B
