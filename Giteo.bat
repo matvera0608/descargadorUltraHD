@@ -14,11 +14,12 @@ REM color 0B es para texto azul claro
 REM color 0C es para texto rojo
 REM color 0E es para texto amarillo
 
-REM 🚀 --- FLUJO PRINCIPAL ---
+REM 🚀 --- FLUJO PRINCIPAL --- BORRÉ PORQUE HABIA CIERTAS DUPLICACIONE
 CALL :SELECT_LANGUAGE
-CALL :CREATE_GITIGNORE
 CALL :CHECK_INTERNET
 CALL :INICIAR_O_ACTUALIZAR
+GOTO END_SCRIPT
+
 :: ................................
 :: FUNCIONES PRINCIPALES
 :: ................................
@@ -136,9 +137,10 @@ echo .........................................................................
         git add .
         git commit -m "%COMMIT_MESSAGE%"
         git branch -M main
-        GOTO :PUSHEO_INICIAL
+        GOTO PUSHEO_INICIAL
     )
     GOTO :EOF
+
 
 :PUSHEO_INICIAL
     echo.
@@ -163,7 +165,7 @@ echo .........................................................................
         timeout /t 2 /nobreak >NUL
         GOTO PUSHEO_INICIAL
     ) ELSE (
-        echo 🚫 Fallo tras 5 intentos de sincronización.
+        echo 🚫 Falló tras 5 intentos de sincronización.
         GOTO CONFLICTO
     )
     GOTO :EOF
@@ -179,6 +181,7 @@ echo .........................................................................
     echo Si deseas abortar ejecuta git rebase --abort
     pause
     GOTO END_SCRIPT
+
 
 :PUSHEO_EXITOSO
     color 0A
