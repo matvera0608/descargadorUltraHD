@@ -16,9 +16,9 @@ REM color 0E es para texto amarillo
 
 REM 🚀 --- FLUJO PRINCIPAL ---
 CALL :SELECT_LANGUAGE
+CALL :CREATE_GITIGNORE
 CALL :CHECK_INTERNET
 CALL :INICIAR_O_ACTUALIZAR
-
 :: ................................
 :: FUNCIONES PRINCIPALES
 :: ................................
@@ -50,7 +50,7 @@ CALL :INICIAR_O_ACTUALIZAR
         echo Opcion no valida. Por favor, intenta de nuevo.
         GOTO SELECT_LANGUAGE
     )
-GOTO :EOF
+    GOTO :EOF
 
 echo .........................................................................
 
@@ -83,8 +83,7 @@ echo .........................................................................
         echo .classpath >> .gitignore
     )
     echo Archivo .gitignore creado exitosamente para el lenguaje %LANG_TYPE%.
-
-GOTO :EOF
+    GOTO :EOF
 
 
 :CHECK_INTERNET
@@ -117,7 +116,7 @@ GOTO :EOF
             GOTO END_SCRIPT
         )   
     )
-GOTO :EOF
+    GOTO :EOF
 
 echo .........................................................................
 
@@ -139,7 +138,7 @@ echo .........................................................................
         git branch -M main
         GOTO :PUSHEO_INICIAL
     )
-GOTO :EOF
+    GOTO :EOF
 
 :PUSHEO_INICIAL
     echo.
@@ -167,7 +166,7 @@ GOTO :EOF
         echo 🚫 Fallo tras 5 intentos de sincronización.
         GOTO CONFLICTO
     )
-GOTO :EOF
+    GOTO :EOF
 
 :CONFLICTO
     color 0C
@@ -179,7 +178,7 @@ GOTO :EOF
     echo 3️⃣ Luego git rebase --continue
     echo Si deseas abortar ejecuta git rebase --abort
     pause
-GOTO END_SCRIPT
+    GOTO END_SCRIPT
 
 :PUSHEO_EXITOSO
     color 0A
