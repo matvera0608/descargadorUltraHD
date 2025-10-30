@@ -133,7 +133,9 @@ echo .........................................................................
         git remote add origin %URL%
     ) ELSE (
         echo 📁 Repositorio detectado. Preparando cambios...
+        git rm -r --cached
         git add .
+       
         git commit -m "%COMMIT_MESSAGE%"
         git branch -M main
         GOTO PUSHEO_INICIAL
