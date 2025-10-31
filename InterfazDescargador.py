@@ -4,8 +4,10 @@ import os, customtkinter
 from Downloader import descargar
 from ImagenesImportadas import ícono
 
-
 os.system('python -m yt_dlp -U >nul 2>&1')
+
+def crearPestaña(contenedor):
+     return customtkinter.CTkTabview(contenedor)
 
 def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="readonly"):
      return tkModerno.Combobox(contenedor, values=valor, width=ancho, state=estado)
@@ -35,6 +37,12 @@ interfaz.title("aTube Ramiro")
 interfaz.geometry("500x500")
 interfaz.iconbitmap(ícono)
 
+pestaña = crearPestaña(interfaz)
+pestaña.pack(expand=True, fill="both")
+
+pestaña.add("Opciones")
+pestaña.add("Ayuda")
+
 crearEtiqueta(interfaz, "Elige el formato: ").place(relx=0.5, rely=0.1, anchor="center")
 cbBox_formatos = crearListaDesplegable(interfaz)
 cbBox_formatos.current(0)
@@ -45,8 +53,6 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.8)
 entry_Link.bind("<KeyRelease>", habilitar)
-
-
 
 btnDescargar = crearBotón(interfaz, "DESCARGAR", lambda: descargar(entry_Link.get(), cbBox_formatos.get()))
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
