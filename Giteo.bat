@@ -187,12 +187,11 @@ echo .........................................................................
 :PUSHEO_EXITOSO
     color 0A
     echo .........................................................................
-    echo ¡Giteo completado exitosamente!  Cambios subidos a GitHub correctamente.
+    echo ¡Giteo completado exitosamente, cambios subidos a GitHub correctamente!
     GOTO END_SCRIPT
 
 :END_SCRIPT
     echo .........................................................................
     echo Proceso Giteo finalizado.
-    echo .........................................................................
-    timeout /t 2 >NUL
+    timeout /t 1 >NUL
     EXIT /B
