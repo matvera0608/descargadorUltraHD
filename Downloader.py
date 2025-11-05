@@ -108,6 +108,7 @@ def descargar(url, formato):
         "format": formatoYDL,
         "merge_output_format": "mp4",
         "progress_hooks": [hook_progreso],
+        "writesubtitles": True,
         "show_progress": True,
         "noplaylist": True,
         "nooverwrites": True,

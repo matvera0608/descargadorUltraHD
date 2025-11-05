@@ -10,6 +10,9 @@ ctk.set_default_color_theme("blue")
 os.system('pip install --upgrade customtkinter >nul 2>&1')
 os.system('python -m yt_dlp -U >nul 2>&1')
 
+def crearMarco(contenedor, ancho=500, alto=500):
+     return ctk.CTkFrame(contenedor, width=ancho, height=alto)
+
 def crearPestaña(contenedor, ancho=500, alto=500):
      return ctk.CTkTabview(contenedor, width=ancho, height=alto)
 
@@ -23,7 +26,7 @@ def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10)):
      return ctk.CTkEntry(contenedor, width=ancho, font=fuente, state="disabled")
 
 def crearBotón(contenedor, texto, comando, imagen, ancho=10, fuente=("Arial", 10), colorFondo="blue", colorLetra="white", estado="disabled"):
-     return ctk.CTkButton(contenedor, text=texto, command= lambda: comando(),image=imagen, width=ancho, font=fuente, fg_color=colorFondo, text_color=colorLetra, cursor="hand2", state=estado)
+     return ctk.CTkButton(contenedor, text=texto, command= lambda: comando(), image=imagen, width=ancho, font=fuente, fg_color=colorFondo, text_color=colorLetra, cursor="hand2", state=estado)
 
 
 def habilitar(evento=None):
@@ -41,13 +44,24 @@ interfaz.title("aTube Ramiro")
 interfaz.geometry("500x500")
 interfaz.iconbitmap(ícono)
 
-pestaña = crearPestaña(interfaz)
-pestaña.pack(expand=True, fill="both")
+marco = crearMarco(interfaz)
+marco.pack(side="top", fill="x")
 
+pestaña = crearPestaña(marco)
+pestaña.pack(expand=True, fill="both")
 pestaña.add("Opciones")
+
+cinta = crearMarco(pestaña.tab("Opciones"))
+cinta.pack(side="top", fill="x", pady=5)
+
+crearBotón(cinta, "Traducir", None, None).pack(side="left", padx=10, pady=10)
+crearBotón(cinta, "Importar", None, None).pack(side="left", padx=10, pady=10)
+crearBotón(cinta, "Exportar", None, None).pack(side="left", padx=10, pady=10)
+
+crearEtiqueta(interfaz, "Bienvenido a aTube Ramiro. Selecciona las opciones de descarga en la pestaña 'Descargador'. Para más información, visita la pestaña 'Ayuda'.", ("Arial", 10)).place(relx=0.5, rely=0.5, anchor="center")
 pestaña.add("Ayuda")
 
-crearEtiqueta(interfaz, "Elige el formato: ").place(relx=0.5, rely=0.1, anchor="center")
+crearEtiqueta(interfaz, "Elige el formato: ", ("Arial", 10)).place(relx=0.5, rely=0.1, anchor="center")
 cbBox_formatos = crearListaDesplegable(interfaz)
 cbBox_formatos.current(0)
 cbBox_formatos.place(relx=0.45, rely=0.2, relwidth=0.2)
