@@ -7,12 +7,7 @@ directorio = os.path.dirname(__file__)
 
 
 # --- FUNCIÓN PARA CARGAR IMAGENES ---
-def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(25, 25)):
-    """Carga una imagen y devuelve preferiblemente un `CTkImage` (recomendado para customtkinter).
-
-    - Devuelve `customtkinter.CTkImage(light_image=..., size=...)` cuando sea posible.
-    - Si no se puede crear `CTkImage` (por ejemplo, versión antigua), hace fallback a `ImageTk.PhotoImage`.
-    """
+def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(50, 50)):
     ruta = os.path.join(directorio, ruta_subcarpeta_imagen, nombre_imagen)
     if not os.path.exists(ruta):
         print(f"Imagen no encontrada: {ruta}")
@@ -21,7 +16,6 @@ def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(25, 25)):
         imagen = Image.open(ruta)
         imagen = imagen.resize(tamaño, Image.Resampling.LANCZOS)
 
-        # Intentar devolver CTkImage (para evitar la advertencia de CTkButton)
         try:
             ctk_image = ctk.CTkImage(light_image=imagen, size=tamaño)
             return ctk_image

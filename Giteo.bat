@@ -4,7 +4,7 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 SET MAX_INTENTOS=5
 SET INTENTO=0
 SET INTENTO_DE_PUSHEO=1
-SET COMMIT_MESSAGE=Cambios realizados
+SET COMMIT_MESSAGE=El descargador está en constante evolución
 echo .........................................................................
 echo Giteo v2.3 pro
 echo Iniciando subida a GitHub...
@@ -60,6 +60,7 @@ echo .........................................................................
     SET "LANG_TYPE=%~1"
     IF EXIST .gitignore (
         echo El archivo .gitignore ya existe. No se sobrescribira.
+        GOTO :EOF
     )
     
     IF "%LANG_TYPE%"=="python" (
