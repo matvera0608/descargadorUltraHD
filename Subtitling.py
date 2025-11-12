@@ -4,50 +4,29 @@ from Cookies import contiene_sessdata
 # yt-dlp --cookies C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt --list-subs https://www.bilibili.com/video/BV185HtzAEGX"
 
 
-def listar_lenguas(url):
-    global info
-    ydl_opts_info = {"listsubtitles": True}
-    with YoutubeDL(ydl_opts_info) as ydl:
-        info = ydl.extract_info(url, download=False)
-                
 #Descargar subtítulos se modificó:
 #1. La condición if bilibili tiene cookiefile para leer cookies del video y subtitular.
 #2. Contiene sessdata lo que hace es vertificar si cookies tiene sessdata.
 def descargar_subtítulos(url):
-    opción = input("¿Querés descargar los subtítulos? ").lower().strip()
-    if opción in ["si", "s", "sí"]:
-        listar_lenguas(url) if url not in "bilibili" else True
-        if "bilibili" in url.lower():
-            if not contiene_sessdata(r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt"):
-                print("⛔ No se detectó sesión activa. Exportá cookies nuevamente desde Chrome.")
-                return []
-            idioma = input("¿En qué idioma está el video? ").lower().strip() or "ai-zh"
-            base_opts = {
-                        "cookiefile": r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt",
-                        "extractor_args": {"bilibili": {"lang": ["ai-zh", "zh-Hans"], "allow_ep": ["True"]}},
-                        "writesubtitles": True,
-                        #"format": "bv*+ba/b",
-                        "subtitleslangs": [idioma],
-                        "writeautomaticsub": True,
-                        "subtitlesformat": "srt",
-                        "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
-                        "merge_output_format": "mp4",
-                        "http_headers": {
-                                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                                        "Referer": "https://www.bilibili.com/",
-                                        },
-                        }
-            return base_opts
-        else:
-            idioma = input("¿En qué idioma está el video? ").lower().strip() or "es"
-            return {
-            "writesubtitles": True,
-            "writeautomaticsub": True,
-            "subtitleslangs": [idioma],
-            "subtitlesformat": "srt",
-            }
-    else:
-        return {}
+    if not contiene_sessdata(r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt"):
+        print("⛔ No se detectó sesión activa. Exportá cookies nuevamente desde Chrome.")
+        return []
+    idioma = None
+    base_opts = {
+                "cookiefile": r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt",
+                "extractor_args": {"bilibili": {"lang": ["ai-zh", "zh-Hans"], "allow_ep": ["True"]}},
+                "writesubtitles": True,
+                "subtitleslangs": [idioma],
+                "writeautomaticsub": True,
+                "subtitlesformat": "srt",
+                "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
+                "merge_output_format": "mp4",
+                "http_headers": {
+                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                "Referer": "https://www.bilibili.com/",
+                                },
+                }
+    return base_opts
 
 def limpiar_repeticiones(ruta_srt):
     def normalizar_texto(texto):
@@ -95,7 +74,7 @@ def limpiar_repeticiones(ruta_srt):
             tiempo_anterior = tiempo
     
     print(f"✔ Limpieza completada. Repeticiones eliminadas: {repeticiónEliminada}")
-    # Guardar el nuevo archivo limpio
+    
     contenido_final = "\n\n".join(bloques_limpios)
     ruta_limpia = ruta_srt.replace(".srt", "_limpio.srt")
     with open(ruta_limpia, "w", encoding="utf-8") as archivo:
