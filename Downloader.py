@@ -6,26 +6,13 @@ from yt_dlp.utils import DownloadError
 import re
 from Subtitling import descargar_subtítulos
 
-# Esta función lo que hace es intentar descargar la información de un video, en caso de la falla imprime con un mensaje
-# y vuelve a intentar con un proxy chino (esto es útil para BiliBili que a veces falla)
-# def extraer_info_seguro(url, opciones):
-#     try:
-#         with YoutubeDL(opciones) as ydl:
-#             return ydl.extract_info(url)
-#     except DownloadError as e:
-#         if "BiliBili" in str(e) and "No video formats found" in str(e):
-#             print("⚠ Error con el extractor BiliBili. Reintentando con proxy CN...")
-#             opciones["proxy"] = "https://cn.bilibili.com"  # redirige a servidor chino
-#             opciones["skip_download"] = True
-#             opciones["forcejson"] = True
-#             try:
-#                 with YoutubeDL(opciones) as ydl:
-#                     return ydl.extract_info(url)
-#             except Exception as e2:
-#                 print("❌ Fallback también falló:", e2)
-#                 return None
-#         else:
-#             raise e
+def limpiar_ansi(texto):
+    """Elimina los códigos ANSI (colores de consola) del texto."""
+    if not texto:
+        return texto
+    return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
+
+
 
 def optar(tipoFormato):
     match tipoFormato:
@@ -77,40 +64,39 @@ def descargar(url, formato, subtitulos):
     if not destino:
         return
     
-    
-    
     formatoYDL, procesoCodificación = optar(formato)
     
     # --- Hook de progreso (definido dentro) ---
     def hook_progreso(d):
-        velocidad = d.get('_speed_str', 'N/A') #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
-        eta = d.get('_eta_str', 'N/A')
+        
+        if not lbl_estado.winfo_widget():
+            return
+        
+        velocidad = limpiar_ansi(d.get('_speed_str', 'N/A')) #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
+        eta = limpiar_ansi(d.get('_eta_str', 'N/A'))
         if d['status'] == 'downloading':
             total = d.get('total_bytes') or d.get('total_bytes_estimate')
             porcentaje = d['downloaded_bytes'] / total * 100 if total else 0
             tamaño_total = f"{total/1024/1024:.2f} MB"
-            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta} | Total: {tamaño_total}")
-            if porcentaje > 50:
+            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}")
+            if porcentaje >= 50:
                 lbl_estado.configure(text=f"Más de la mitad descargada | Velocidad: {velocidad}") #Imprimimos la velocidad cuando está mayor que 50, porque es la mitad de 100
             barra.set(porcentaje / 100)
             lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
-            ventanaProgreso.update_idletasks()
         elif d['status'] == 'finished':
             barra.set(1)
             lbl_porcentaje.configure(text="100%")
             lbl_estado.configure(text="✅ Descarga completada.")
-            ventanaProgreso.update_idletasks()
             ventanaProgreso.after(3000, ventanaProgreso.destroy)  # cierra la ventana en 3 segundos
 
-
-            
     mostrar_descarga()
     
     ydl_opts = {
         "outtmpl": destino + "/%(title)s.%(ext)s",
         "format": formatoYDL,
         "merge_output_format": "mp4",
-        "quiet": True,
+        "quiet": False,
+        "logger": None,
         "no_warnings": True,
         "progress_hooks": [hook_progreso],
         "show_progress": False,
@@ -124,7 +110,7 @@ def descargar(url, formato, subtitulos):
             ],
         }
     
-  
+    
 
     if subtitulos:
         try:
@@ -146,5 +132,5 @@ def descargar(url, formato, subtitulos):
             else:
                 print(f"\n Error: {excepción}")
     
-    subproceso.Thread(target=tarea, daemon=True)
+    subproceso.Thread(target=tarea, daemon=True).start()
             
