@@ -1,10 +1,10 @@
-from tkinter import messagebox as mensajeDeTexto, filedialog as diálogo, ttk as tkModerno
-import tkinter as tk
+from tkinter import messagebox as mensajeDeTexto, filedialog as diálogo
+import customtkinter as ctk
+import threading as subproceso
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import re
-from Subtitling import descargar_subtítulos, limpiar_repeticiones
-from Cookies import mover_cookies
+from Subtitling import descargar_subtítulos
 
 # Esta función lo que hace es intentar descargar la información de un video, en caso de la falla imprime con un mensaje
 # y vuelve a intentar con un proxy chino (esto es útil para BiliBili que a veces falla)
@@ -45,34 +45,29 @@ def optar(tipoFormato):
                 )
 
 
-##from tkinter import ttk as tkModerno. tkModerno se llama porque está aliasado con ttk
-##Esta función mostrar se enfocará de hacer lo siguiente:
-#A la hora de presionar descargar tirará un diálogo de descargando el video
-#Pero usando el time.sleep() con un número variable del tipo de video que se descargará
-
-def mostrar_descarga(url, formato):
+def mostrar_descarga():
     global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
     
     # --- Ventana de progreso ---
-    ventanaProgreso = tk.Toplevel()
+    ventanaProgreso = ctk.CTkToplevel()
     ventanaProgreso.title("En proceso")
-    ventanaProgreso.geometry("350x180")
     ventanaProgreso.resizable(False, False)
 
-    lbl_estado = tk.Label(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 11))
+    lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 20))
     lbl_estado.pack(pady=10)
 
-    barra = tkModerno.Progressbar(ventanaProgreso, orient="horizontal", length=250, mode="determinate", maximum=100)
+    barra = ctk.CTkProgressBar(ventanaProgreso, width=250)
     barra.pack(pady=10)
+    barra.set(0)
 
-    lbl_porcentaje = tk.Label(ventanaProgreso, text="0%", font=("Segoe UI", 10))
+    lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=("Segoe UI", 10))
     lbl_porcentaje.pack(pady=5)
     
     if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
         print("⚠ La ventana de progreso no está inicializada.")
         return
-
-def descargar(url, formato):
+    
+def descargar(url, formato, subtitulos):
     urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
     
     if not url.strip() or not urlHTTP.match(url):
@@ -82,31 +77,41 @@ def descargar(url, formato):
     if not destino:
         return
     
-    mostrar_descarga(url, formato)
+    
     
     formatoYDL, procesoCodificación = optar(formato)
     
-    
     # --- Hook de progreso (definido dentro) ---
     def hook_progreso(d):
+        velocidad = d.get('_speed_str', 'N/A') #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
+        eta = d.get('_eta_str', 'N/A')
         if d['status'] == 'downloading':
             total = d.get('total_bytes') or d.get('total_bytes_estimate')
-            if total:
-                porcentaje = d['downloaded_bytes'] / total * 100
-                barra['value'] = porcentaje
-                lbl_porcentaje.config(text=f"{porcentaje:.1f}%")
-                ventanaProgreso.update_idletasks()
-        elif d['status'] == 'finished':
-            barra['value'] = 100
-            lbl_porcentaje.config(text="100%")
-            lbl_estado.config(text="✅ Descarga completada.")
+            porcentaje = d['downloaded_bytes'] / total * 100 if total else 0
+            tamaño_total = f"{total/1024/1024:.2f} MB"
+            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta} | Total: {tamaño_total}")
+            if porcentaje > 50:
+                lbl_estado.configure(text=f"Más de la mitad descargada | Velocidad: {velocidad}") #Imprimimos la velocidad cuando está mayor que 50, porque es la mitad de 100
+            barra.set(porcentaje / 100)
+            lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
             ventanaProgreso.update_idletasks()
+        elif d['status'] == 'finished':
+            barra.set(1)
+            lbl_porcentaje.configure(text="100%")
+            lbl_estado.configure(text="✅ Descarga completada.")
+            ventanaProgreso.update_idletasks()
+            ventanaProgreso.after(3000, ventanaProgreso.destroy)  # cierra la ventana en 3 segundos
 
+
+            
+    mostrar_descarga()
     
     ydl_opts = {
         "outtmpl": destino + "/%(title)s.%(ext)s",
         "format": formatoYDL,
         "merge_output_format": "mp4",
+        "quiet": True,
+        "no_warnings": True,
         "progress_hooks": [hook_progreso],
         "show_progress": False,
         "noplaylist": True,
@@ -119,15 +124,27 @@ def descargar(url, formato):
             ],
         }
     
-    try:
-        with YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            mensajeDeTexto.showinfo("ÉXITO", "LA DESCARGA FUE EXITOSA")
-            return {"estado": "ok", "detalle": "Descargado EXITOSAMENTE"}
-    except DownloadError as excepción:
-        if "No video formats found" in str(excepción):
-            print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
-        elif "Unable to download webpage" in str(excepción):
-            print("\n ERROR DE CONEXIÓN en el video")
-        else:
-            print(f"\n Error: {excepción}")
+  
+
+    if subtitulos:
+        try:
+            print("DESCARGANDO SUBTÍTULOS")
+            descargar_subtítulos(destino)
+        except Exception as e:
+            print(f"ERROR INESPERADO AL DESCARGAR SUBTÍTULOS: {e}")
+            
+    def tarea():
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+                mensajeDeTexto.showinfo("ÉXITO", "LA DESCARGA FUE EXITOSA")
+        except DownloadError as excepción:
+            if "No video formats found" in str(excepción):
+                print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
+            elif "Unable to download webpage" in str(excepción):
+                print("\n ERROR DE CONEXIÓN en el video")
+            else:
+                print(f"\n Error: {excepción}")
+    
+    subproceso.Thread(target=tarea, daemon=True)
+            

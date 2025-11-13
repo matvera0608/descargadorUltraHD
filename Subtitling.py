@@ -1,25 +1,37 @@
 from yt_dlp import YoutubeDL
-import os, string, re
+import string, re
 from Cookies import contiene_sessdata
 # yt-dlp --cookies C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt --list-subs https://www.bilibili.com/video/BV185HtzAEGX"
 
 
-#Descargar subtítulos se modificó:
-#1. La condición if bilibili tiene cookiefile para leer cookies del video y subtitular.
-#2. Contiene sessdata lo que hace es vertificar si cookies tiene sessdata.
-def descargar_subtítulos(url):
+def obtener_subtítulos_disponibles(url):
+    subt_ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+    }
+    with YoutubeDL(subt_ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        subs = info.get("subtitles") or {}
+        
+        if not subs:
+            print("No hay subtítulos disponibles para el video")
+            return
+        
+        return list(subs.keys())
+    
+def descargar_subtítulos(destino):
+    
     if not contiene_sessdata(r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt"):
         print("⛔ No se detectó sesión activa. Exportá cookies nuevamente desde Chrome.")
         return []
-    idioma = None
+    idiomaPreferido = None
     base_opts = {
                 "cookiefile": r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt",
-                "extractor_args": {"bilibili": {"lang": ["ai-zh", "zh-Hans"], "allow_ep": ["True"]}},
                 "writesubtitles": True,
-                "subtitleslangs": [idioma],
+                "subtitleslangs": [idiomaPreferido],
                 "writeautomaticsub": True,
                 "subtitlesformat": "srt",
-                "outtmpl": r"C:\Users\veram\Downloads\%(title)s.%(ext)s",
+                "outtmpl": destino + "/%(title)s.%(ext)s",
                 "merge_output_format": "mp4",
                 "http_headers": {
                                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",

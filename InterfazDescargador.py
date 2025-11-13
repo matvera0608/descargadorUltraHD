@@ -81,11 +81,12 @@ crearEtiqueta(interfaz, "Elige el formato: ", ("Arial", 20)).place(relx=0.5, rel
 cbBox_formatos = crearListaDesplegable(interfaz)
 cbBox_formatos.set("mp4")
 cbBox_formatos.place(relx=0.45, rely=0.2, relwidth=0.2)
-cbBox_formatos.configure(command= lambda e: habilitar(e))
+cbBox_formatos.configure(command= lambda e: habilitar(e)) #Acá le lambdeé como si fuera un evento, no usé el bind combobox selected ya que el mismo no tiene o no existe.
+#Para mí es mucho más práctico usar configure que command habilitar porque la diferencia es que este tira un error de que las variables no están definidas.
 
-bool_subtitular = ctk.BooleanVar(value=False)
+chBox_subtitular = ctk.BooleanVar(value=False)
 
-crearBotónChequeo(interfaz, "Subtitular", bool_subtitular).place(relx=0.85, rely=0.45)
+crearBotónChequeo(interfaz, "Subtitular", chBox_subtitular).place(relx=0.85, rely=0.45)
 
 crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier plataforma: ").place(relx=0.5, rely=0.35, anchor="center")
 entry_Link = crearEntradaLink(interfaz)
@@ -94,7 +95,7 @@ entry_Link.bind("<KeyRelease>", habilitar)
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
 
-btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(entry_Link.get(), cbBox_formatos.get()),
+btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get()),
                              image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
                              hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
