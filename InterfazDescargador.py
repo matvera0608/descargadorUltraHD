@@ -2,21 +2,10 @@ import os, customtkinter as ctk
 import tkinter as tk
 from Downloader import *
 from ImagenesImportadas import *
+from Elementos import *
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
-
-# Paleta personalizada (usa tus hex o nombres preferidos)
-colors = {
-    "background": "#0f1724",
-    "surface": "#111827",
-    "primary": "#2563eb",
-    "primary_hover": "#1d4ed8",
-    "on_primary": "#ffffff",
-    "accent": "#06b6d4",
-    "danger": "#ef4444",
-    "text": "#ffffff"
-}
 
 os.system('pip install --upgrade customtkinter >nul 2>&1')
 os.system('python -m yt_dlp -U >nul 2>&1')
@@ -39,7 +28,6 @@ def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10)):
 def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=("Arial", 10), colorFondo="blue", colorLetra="white", hover="#1d4ed8", estado="disabled"):
      return ctk.CTkButton(contenedor, text=texto, command= lambda: comando(), image=imagen, compound="top", width=ancho, height=alto,
                           corner_radius=8, font=fuente, fg_color=colorFondo, hover_color=hover, text_color=colorLetra, cursor="hand2", state=estado)
-
 
 def habilitar(evento=None):
      entry_Link.configure(state="normal")
@@ -95,9 +83,9 @@ entry_Link.bind("<KeyRelease>", habilitar)
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
 
-btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get()),
-                             image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
-                             hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
+btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interfaz, entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get()),
+               image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
+               hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
 
 interfaz.mainloop()

@@ -1,36 +1,17 @@
-from tkinter import messagebox as mensajeDeTexto, filedialog as diálogo
+from tkinter import filedialog as diálogo
 import customtkinter as ctk
 import threading as subproceso
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
-import re
+import re, os
 from Subtitling import descargar_subtítulos
+from Elementos import *
 
 def limpiar_ansi(texto):
     """Elimina los códigos ANSI (colores de consola) del texto."""
     if not texto:
         return texto
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
-
-
-
-def optar(tipoFormato):
-    match tipoFormato:
-        case "mp4":
-            return (
-                "bestvideo+bestaudio/best",
-                [
-                    {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"},
-                ],
-            )
-        case "mp3":
-            return (
-                    "bestaudio/best",
-                    [
-                        {"key": "FFmpegExtractAudio", "preferredcodec": "aac", "preferredquality": "192"},
-                    ],
-                )
-
 
 def mostrar_descarga():
     global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
@@ -53,50 +34,104 @@ def mostrar_descarga():
     if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
         print("⚠ La ventana de progreso no está inicializada.")
         return
-    
-def descargar(url, formato, subtitulos):
+
+def optar(tipoFormato):
+    match tipoFormato:
+        case "mp4":
+            return (
+                "bestvideo+bestaudio/best",
+                [
+                    {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"},
+                ],
+            )
+        case "mp3":
+            return (
+                    "bestaudio/best",
+                    [
+                        {"key": "FFmpegExtractAudio", "preferredcodec": "aac", "preferredquality": "192"},
+                    ],
+                )
+
+def descargar(ventana, url, formato, subtitulos):
     urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
-    
-    if not url.strip() or not urlHTTP.match(url):
+
+    if not url.strip():
+        return
+    elif not urlHTTP.match(url):
+        mostrar_aviso(ventana, "El tipo de dato es inválido", color=colors["danger"])
         return
     
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
         return
     
+    plantilla = os.path.join(destino, "%(title)s.mp4")
+    
     formatoYDL, procesoCodificación = optar(formato)
     
-    # --- Hook de progreso (definido dentro) ---
-    def hook_progreso(d):
-        
-        if not lbl_estado.winfo_widget():
-            return
-        
-        velocidad = limpiar_ansi(d.get('_speed_str', 'N/A')) #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
-        eta = limpiar_ansi(d.get('_eta_str', 'N/A'))
-        if d['status'] == 'downloading':
-            total = d.get('total_bytes') or d.get('total_bytes_estimate')
-            porcentaje = d['downloaded_bytes'] / total * 100 if total else 0
-            tamaño_total = f"{total/1024/1024:.2f} MB"
-            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}")
-            if porcentaje >= 50:
-                lbl_estado.configure(text=f"Más de la mitad descargada | Velocidad: {velocidad}") #Imprimimos la velocidad cuando está mayor que 50, porque es la mitad de 100
-            barra.set(porcentaje / 100)
-            lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
-        elif d['status'] == 'finished':
-            barra.set(1)
-            lbl_porcentaje.configure(text="100%")
-            lbl_estado.configure(text="✅ Descarga completada.")
-            ventanaProgreso.after(3000, ventanaProgreso.destroy)  # cierra la ventana en 3 segundos
-
     mostrar_descarga()
     
+    # --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
+    # durante la descarga para actualizar la interfaz de usuario
+    def hook_progreso(d):
+        try:
+            temp_file = d.get('filename')
+            velocidad = limpiar_ansi(d.get('_speed_str', 'N/A')) #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
+            eta = limpiar_ansi(d.get('_eta_str', 'N/A'))
+            if d['status'] == 'downloading':
+                total = d.get('total_bytes') or d.get('total_bytes_estimate')
+                porcentaje = (d['downloaded_bytes'] / total) * 100 if total else 0
+                descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}"))
+                if porcentaje >= 50:
+                    descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text=f"Más de la mitad descargada | Velocidad: {velocidad}")) #Imprimimos la velocidad cuando está mayor que 50, porque es la mitad de 100
+                descarga_segura_resistente_a_fallos(barra, lambda: barra.set(porcentaje / 100))
+                descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_porcentaje.configure(text=f"{porcentaje:.1f}%"))
+            elif d['status'] == 'finished':
+                descarga_segura_resistente_a_fallos(barra, lambda: barra.set(1))
+                descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_porcentaje.configure(text="100%"))
+                descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="✅ Descarga completada."))
+                mostrar_aviso(ventana, "Descarga completada con éxito.", color=colors["successfully"])
+                if ventanaProgreso and ventanaProgreso.winfo_exists(): #Ahora ejecuta el cierre de la ventana de progreso cuando la descarga se completa o cancela
+                    ventanaProgreso.after(1500, ventanaProgreso.destroy)
+            else:
+                descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="❌ Descarga fallida."))
+                if ventanaProgreso and ventanaProgreso.winfo_exists():
+                    ventanaProgreso.after(1500, ventanaProgreso.destroy)
+                    if temp_file and os.path.exists(temp_file) and temp_file.endswith('.part'):
+                        try:
+                            os.remove(temp_file)
+                        except Exception as e:
+                            print(f"No se pudo eliminar el archivo temporal: {e}")
+                            
+        except Exception as e:
+            print(f"Error en el hook de progreso: {e}")
+            try:
+                os.remove(temp_file)
+            except Exception as e:
+                print(f"No se pudo eliminar el archivo temporal: {e}")
+
+    # ------------------------------------------
+    # Verificar si el archivo ya existe antes de descargar
+    try:
+        with YoutubeDL({"skip_download": True, "quiet": True, "no_warnings": True, "outtmpl": plantilla}) as ydl:
+            info = ydl.extract_info(url, download=False)
+            nombre_prueba = ydl.prepare_filename(info)
+    except Exception as e:
+        print(f"No se pudo extraer info: {e}")
+        nombre_prueba = os.path.join(destino, "video.mp4")
+        
+        
+    if os.path.exists(nombre_prueba):
+        mostrar_aviso(ventana, "⚠ El archivo ya existe\nen la ubicación seleccionada.", color=colors["alert"])
+        ventanaProgreso.after(3000, ventanaProgreso.destroy)
+        return
+    
+    
     ydl_opts = {
-        "outtmpl": destino + "/%(title)s.%(ext)s",
+        "outtmpl": plantilla,
         "format": formatoYDL,
         "merge_output_format": "mp4",
-        "quiet": False,
-        "logger": None,
+        "quiet": True,
         "no_warnings": True,
         "progress_hooks": [hook_progreso],
         "show_progress": False,
@@ -110,8 +145,6 @@ def descargar(url, formato, subtitulos):
             ],
         }
     
-    
-
     if subtitulos:
         try:
             print("DESCARGANDO SUBTÍTULOS")
@@ -123,7 +156,6 @@ def descargar(url, formato, subtitulos):
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
-                mensajeDeTexto.showinfo("ÉXITO", "LA DESCARGA FUE EXITOSA")
         except DownloadError as excepción:
             if "No video formats found" in str(excepción):
                 print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
@@ -133,4 +165,3 @@ def descargar(url, formato, subtitulos):
                 print(f"\n Error: {excepción}")
     
     subproceso.Thread(target=tarea, daemon=True).start()
-            
