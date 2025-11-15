@@ -6,6 +6,7 @@ from yt_dlp.utils import DownloadError
 import re, os
 from Subtitling import descargar_subtítulos
 from Elementos import *
+from yt_dlp_UPDATES import *
 
 def limpiar_ansi(texto):
     """Elimina los códigos ANSI (colores de consola) del texto."""
@@ -147,8 +148,9 @@ def descargar(ventana, url, formato, subtitulos):
     
     if subtitulos:
         try:
-            print("DESCARGANDO SUBTÍTULOS")
-            descargar_subtítulos(destino)
+            mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"])
+            descargar_subtítulos(ventana, url, destino)
+            mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO EXITOSAMENTE", colors["successfully"])
         except Exception as e:
             print(f"ERROR INESPERADO AL DESCARGAR SUBTÍTULOS: {e}")
             

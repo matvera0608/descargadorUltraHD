@@ -6,7 +6,6 @@ colors = {
     "surface": "#111827",
     "primary": "#2563eb",
     "primary_hover": "#1d4ed8",
-    "on_primary": "#ffffff",
     "accent": "#06b6d4",
     "danger": "#ef4444",
     "text": "#ffffff",

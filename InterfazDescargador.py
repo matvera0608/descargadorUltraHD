@@ -1,4 +1,4 @@
-import os, customtkinter as ctk
+import customtkinter as ctk
 import tkinter as tk
 from Downloader import *
 from ImagenesImportadas import *
@@ -7,14 +7,11 @@ from Elementos import *
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-os.system('pip install --upgrade customtkinter >nul 2>&1')
-os.system('python -m yt_dlp -U >nul 2>&1')
-
 def crearMarco(contenedor, ancho=500, alto=500):
      return ctk.CTkFrame(contenedor, width=ancho, height=alto)
 
-def crearBotónChequeo(contenedor, texto, variable_de_selección, fuente=("Arial", 10)):
-     return ctk.CTkCheckBox(contenedor, text=texto, font=fuente, variable=variable_de_selección)
+def crearBotónChequeo(contenedor, texto, variable_de_selección, fuente=("Arial", 10), estado="disabled"):
+     return ctk.CTkCheckBox(contenedor, text=texto, font=fuente, variable=variable_de_selección, state=estado)
 
 def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="readonly"):
      return ctk.CTkComboBox(contenedor, values=valor, width=ancho, state=estado)
@@ -22,8 +19,8 @@ def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="re
 def crearEtiqueta(contenedor, texto, fuente=("Arial", 10)):
      return ctk.CTkLabel(contenedor, text=texto, font=fuente)
 
-def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10)):
-     return ctk.CTkEntry(contenedor, width=ancho, font=fuente, state="disabled")
+def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10), estado="disabled"):
+     return ctk.CTkEntry(contenedor, width=ancho, font=fuente, state=estado)
 
 def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=("Arial", 10), colorFondo="blue", colorLetra="white", hover="#1d4ed8", estado="disabled"):
      return ctk.CTkButton(contenedor, text=texto, command= lambda: comando(), image=imagen, compound="top", width=ancho, height=alto,
@@ -31,13 +28,14 @@ def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=(
 
 def habilitar(evento=None):
      entry_Link.configure(state="normal")
-     
-     # Obtener valores
+
      link_valor = entry_Link.get().strip()
      
      if link_valor:
+          chBox_subtitular.configure(state="normal")
           btnDescargar.configure(state="normal")
      else:
+          chBox_subtitular.configure(state="disabled")
           btnDescargar.configure(state="disabled")
 
 
@@ -69,12 +67,13 @@ crearEtiqueta(interfaz, "Elige el formato: ", ("Arial", 20)).place(relx=0.5, rel
 cbBox_formatos = crearListaDesplegable(interfaz)
 cbBox_formatos.set("mp4")
 cbBox_formatos.place(relx=0.45, rely=0.2, relwidth=0.2)
-cbBox_formatos.configure(command= lambda e: habilitar(e)) #Acá le lambdeé como si fuera un evento, no usé el bind combobox selected ya que el mismo no tiene o no existe.
+cbBox_formatos.configure(command = lambda e: habilitar())
 #Para mí es mucho más práctico usar configure que command habilitar porque la diferencia es que este tira un error de que las variables no están definidas.
 
-chBox_subtitular = ctk.BooleanVar(value=False)
+bool_subtitular = ctk.BooleanVar(value=False)
 
-crearBotónChequeo(interfaz, "Subtitular", chBox_subtitular).place(relx=0.85, rely=0.45)
+chBox_subtitular = crearBotónChequeo(interfaz, "Subtitular", bool_subtitular)
+chBox_subtitular.place(relx=0.85, rely=0.45)
 
 crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier plataforma: ").place(relx=0.5, rely=0.35, anchor="center")
 entry_Link = crearEntradaLink(interfaz)

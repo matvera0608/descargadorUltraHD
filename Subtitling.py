@@ -1,44 +1,72 @@
 from yt_dlp import YoutubeDL
 import string, re
-from Cookies import contiene_sessdata
+from Cookies import *
+from Elementos import *
+from yt_dlp_UPDATES import *
 # yt-dlp --cookies C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt --list-subs https://www.bilibili.com/video/BV185HtzAEGX"
-
 
 def obtener_subtítulos_disponibles(url):
     subt_ydl_opts = {
         "quiet": True,
+        "no_warnings": True,
+        "logger": None,
         "skip_download": True,
     }
     with YoutubeDL(subt_ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
-        subs = info.get("subtitles") or {}
-        
+        subs = info.get("subtitles") or info.get("automatic_captions") or {}
         if not subs:
             print("No hay subtítulos disponibles para el video")
             return
         
         return list(subs.keys())
     
-def descargar_subtítulos(destino):
-    
-    if not contiene_sessdata(r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt"):
-        print("⛔ No se detectó sesión activa. Exportá cookies nuevamente desde Chrome.")
-        return []
-    idiomaPreferido = None
-    base_opts = {
-                "cookiefile": r"C:\Users\veram\AppData\Roaming\yt-dlp\cookies.txt",
+def descargar_subtítulos(ventana, url, destino):
+    try:
+        idiomas = obtener_subtítulos_disponibles(url) or []
+        if not idiomas:
+            print("⚠ No hay subtítulos disponibles.")
+            return None
+
+        idioma_original_con_terminación_orig = [idioma for idioma in idiomas if idioma.endswith("-orig")]
+        
+        idioma_seleccionado = idioma_original_con_terminación_orig[0] if idioma_original_con_terminación_orig else idiomas[0]
+        
+        base_opts = {
+                "logger": None,
+                "skip_download": True,
                 "writesubtitles": True,
-                "subtitleslangs": [idiomaPreferido],
                 "writeautomaticsub": True,
                 "subtitlesformat": "srt",
-                "outtmpl": destino + "/%(title)s.%(ext)s",
+                "writeautomaticsub": True,
+                "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
+                "extractor_args": {"youtube": {"player_client": ["web"]}},
                 "merge_output_format": "mp4",
-                "http_headers": {
-                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                                "Referer": "https://www.bilibili.com/",
-                                },
                 }
-    return base_opts
+    
+        es_de_bilibili = "bilibili" in url.lower()
+
+        if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
+            if not contiene_sessdata(destino_cookies):
+                print("⛔ No se detectó sesión activa. Exportá cookies nuevamente desde Chrome.")
+                return []
+            base_opts.update({
+                "cookiefile": destino_cookies,
+                "http_headers": {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Referer": "https://www.bilibili.com/",
+                }
+            })
+        
+        base_opts.update({"subtitleslangs": [idioma_seleccionado]})
+        
+        with YoutubeDL(base_opts) as ydl:
+            ydl.download([url])
+ 
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    
 
 def limpiar_repeticiones(ruta_srt):
     def normalizar_texto(texto):
