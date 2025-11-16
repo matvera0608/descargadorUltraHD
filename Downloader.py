@@ -69,6 +69,22 @@ def descargar(ventana, url, formato, subtitulos):
     
     plantilla = os.path.join(destino, "%(title)s.mp4")
     
+     # ------------------------------------------
+    # Verificar si el archivo ya existe antes de descargar
+    try:
+        with YoutubeDL({"skip_download": True, "quiet": False, "no_warnings": False, "outtmpl": plantilla}) as ydl:
+            info = ydl.extract_info(url, download=False)
+            nombre_prueba = ydl.prepare_filename(info)
+    except Exception as e:
+        print(f"No se pudo extraer info: {e}")
+        nombre_prueba = os.path.join(destino, "video.mp4")
+        
+        
+    if os.path.exists(nombre_prueba):
+        mostrar_aviso(ventana, "⚠ El archivo ya existe\nen la ubicación seleccionada.", color=colors["alert"])
+        ventanaProgreso.after(3000, ventanaProgreso.destroy)
+        return
+    
     formatoYDL, procesoCodificación = optar(formato)
     
     mostrar_descarga()
@@ -112,29 +128,10 @@ def descargar(ventana, url, formato, subtitulos):
             except Exception as e:
                 print(f"No se pudo eliminar el archivo temporal: {e}")
 
-    # ------------------------------------------
-    # Verificar si el archivo ya existe antes de descargar
-    try:
-        with YoutubeDL({"skip_download": True, "quiet": True, "no_warnings": True, "outtmpl": plantilla}) as ydl:
-            info = ydl.extract_info(url, download=False)
-            nombre_prueba = ydl.prepare_filename(info)
-    except Exception as e:
-        print(f"No se pudo extraer info: {e}")
-        nombre_prueba = os.path.join(destino, "video.mp4")
-        
-        
-    if os.path.exists(nombre_prueba):
-        mostrar_aviso(ventana, "⚠ El archivo ya existe\nen la ubicación seleccionada.", color=colors["alert"])
-        ventanaProgreso.after(3000, ventanaProgreso.destroy)
-        return
-    
-    
     ydl_opts = {
         "outtmpl": plantilla,
         "format": formatoYDL,
         "merge_output_format": "mp4",
-        "quiet": True,
-        "no_warnings": True,
         "progress_hooks": [hook_progreso],
         "show_progress": False,
         "noplaylist": True,
@@ -176,12 +173,10 @@ def descargar(ventana, url, formato, subtitulos):
         except DownloadError as excepción:
             if "No video formats found" in str(excepción):
                 print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
-                ventanaProgreso.after(100, ventanaProgreso.destroy)
             elif "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
-                ventanaProgreso.after(100, ventanaProgreso.destroy)
             else:
                 print(f"\n Error")
-                ventanaProgreso.after(100, ventanaProgreso.destroy)
-    
+        finally:
+            ventanaProgreso.after(100, ventanaProgreso.destroy)
     subproceso.Thread(target=tarea, daemon=True).start()

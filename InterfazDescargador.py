@@ -73,8 +73,8 @@ cbBox_formatos.configure(command = lambda e: habilitar())
 
 bool_subtitular = ctk.BooleanVar(value=False)
 
-chBox_subtitular = crearBotónChequeo(interfaz, "Subtitular", bool_subtitular)
-chBox_subtitular.place(relx=0.85, rely=0.45)
+chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
+chBox_subtitular.place(relx=0.825, rely=0.45)
 
 crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier plataforma: ").place(relx=0.5, rely=0.35, anchor="center")
 entry_Link = crearEntradaLink(interfaz)
