@@ -5,6 +5,7 @@ from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import re, os
 from Subtitling import descargar_subtítulos
+from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
@@ -55,7 +56,7 @@ def optar(tipoFormato):
 
 def descargar(ventana, url, formato, subtitulos):
     urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
-
+    es_de_bilibili = "bilibili" in url.lower()
     if not url.strip():
         return
     elif not urlHTTP.match(url):
@@ -146,6 +147,16 @@ def descargar(ventana, url, formato, subtitulos):
             ],
         }
     
+    if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
+            procesar_cookies()
+            ydl_opts.update({
+                "cookiefile": carpeta_destino_cookies,
+                "http_headers": {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Referer": "https://www.bilibili.com/",
+                }
+            })
+    
     if subtitulos:
         try:
             mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"])
@@ -165,9 +176,12 @@ def descargar(ventana, url, formato, subtitulos):
         except DownloadError as excepción:
             if "No video formats found" in str(excepción):
                 print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
+                ventanaProgreso.after(100, ventanaProgreso.destroy)
             elif "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
+                ventanaProgreso.after(100, ventanaProgreso.destroy)
             else:
                 print(f"\n Error")
+                ventanaProgreso.after(100, ventanaProgreso.destroy)
     
     subproceso.Thread(target=tarea, daemon=True).start()

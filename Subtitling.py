@@ -4,7 +4,8 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
-def obtener_subtítulos_disponibles(url):
+#¿Igual este sirve para determinar los subtítulos disponibles?
+def obtener_subtítulos_disponibles(url): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
     subt_ydl_opts = {
         "quiet": True,
         "no_warnings": True,
@@ -15,9 +16,6 @@ def obtener_subtítulos_disponibles(url):
         with YoutubeDL(subt_ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
-            
-            print(f"Subtítulos disponibles: {list(subs.keys())}")
-            
             if not subs:
                 print("No hay subtítulos disponibles para el video")
                 return []
@@ -29,7 +27,7 @@ def obtener_subtítulos_disponibles(url):
     
 def descargar_subtítulos(ventana, url, destino):
     try:
-        
+        idiomas = obtener_subtítulos_disponibles(url)
         base_opts = {
                 "logger": None,
                 "no_warnings": True,
@@ -48,36 +46,27 @@ def descargar_subtítulos(ventana, url, destino):
             procesar_cookies()
             base_opts.update({
                 "cookiefile": carpeta_destino_cookies,
+                "logger": None,
+                "quiet": True,
+                "no_warnings": True,
                 "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                 "Referer": "https://www.bilibili.com/",
                 }
             })
         
-        # Primero obtenemos info del video
-        with YoutubeDL({**base_opts, "skip_download": True}) as ydl:
-            info = ydl.extract_info(url, download=False)
+            with YoutubeDL({**base_opts, "skip_download": True}) as ydl:
+                info = ydl.extract_info(url, download=False)
 
-        # Listado de idiomas
-        idiomas = (info.get("subtitles") or info.get("automatic_captions") or {}).keys()
-        idiomas = list(idiomas)
-
-        if not idiomas:
-            mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-            return False
-
+            subs = info.get("requested_subtitles") or {}
+            idiomas = [i for i in subs.keys() if i != "danmaku"]
+            if not idiomas:
+                mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
+                return False
+        
         idioma_original = next((i for i in idiomas if i.endswith("-orig")), idiomas[0])
-
         base_opts.update({"subtitleslangs": [idioma_original]})
-        # Mostrar los idiomas disponibles en la consola para depuración y verificación
-        with YoutubeDL({"cookiefile": carpeta_destino_cookies}) as ydl:
-            info = ydl.extract_info(url, download=False)
-            print(info.get("subtitles") or info.get("requested_subtitles"))
-                
-        if es_de_bilibili:
-            mostrar_aviso(ventana, f"Subtítulos detectados: {idiomas}", colors["successfully"], 10000)
-
-        # Descargar subtítulo
+        
         with YoutubeDL(base_opts) as ydl:
             ydl.download([url])
 

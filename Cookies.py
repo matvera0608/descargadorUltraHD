@@ -23,11 +23,9 @@ def procesar_cookies():
 
         puntaje = 0
 
-        # +100 si contiene SESSDATA
         if "SESSDATA" in contenido:
             puntaje += 100
 
-        # + tamaño del archivo (más grande = mejor)
         puntaje += os.path.getsize(archivo)
 
         if puntaje > mejor_puntaje:
@@ -40,7 +38,6 @@ def procesar_cookies():
 
     print(f"✅ Mejor cookie seleccionada: {os.path.basename(mejor_archivo)}")
 
-    # Mover archivo
     os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
 
     if os.path.exists(carpeta_destino_cookies):
