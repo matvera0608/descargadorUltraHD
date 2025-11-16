@@ -117,7 +117,7 @@ def descargar(ventana, url, formato, subtitulos):
     # Verificar si el archivo ya existe antes de descargar
     try:
         archivo_existe = False
-        with YoutubeDL({"skip_download": True, "quiet": False, "no_warnings": False, "outtmpl": plantilla}) as ydl:
+        with YoutubeDL({"skip_download": True, "quiet": True, "logger": None, "no_warnings": False, "outtmpl": plantilla}) as ydl:
             info = ydl.extract_info(url, download=False)
             nombre_prueba = ydl.prepare_filename(info)
     except Exception as e:
@@ -133,7 +133,8 @@ def descargar(ventana, url, formato, subtitulos):
                 ventanaProgreso.after(2000, ventanaProgreso.destroy)
         except tk.TclError:
             pass
-        if not subtitulos:
+        
+        if not subtitulos: # este not es para que si el archivo ya existe pero se quieren descargar subtítulos, lo permita.
             return
     
     ydl_opts = {
@@ -164,19 +165,22 @@ def descargar(ventana, url, formato, subtitulos):
             }
         })
     
+    
+    
     if subtitulos:
         try:
             mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"])
             descarga_exitosa = descargar_subtítulos(ventana, url, destino)
             if descarga_exitosa:
                 mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
+            elif descarga_exitosa is None:
+                pass
             else:
                 mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
         except Exception as e:
-            mostrar_aviso(ventana, "ERROR INESPERADO AL DESCARGAR SUBTÍTULOS", colors["danger"])
+            print(f"Error al descargar subtítulos: {e}")
             return False
     
-    # Si el archivo ya existe y no hay subtítulos que descargar, retorna sin descargar video
     if archivo_existe:
         try:
             if ventanaProgreso and ventanaProgreso.winfo_exists():

@@ -60,10 +60,9 @@ def descargar_subtítulos(ventana, url, destino):
                 
             subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
             idiomas = [i for i in subs.keys() if i != "danmaku"]
-            
             if not idiomas:
                 mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-                return 
+                return None
             
             idioma_original = idiomas[0]
         else:
