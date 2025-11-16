@@ -149,10 +149,14 @@ def descargar(ventana, url, formato, subtitulos):
     if subtitulos:
         try:
             mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"])
-            descargar_subtítulos(ventana, url, destino)
-            mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO EXITOSAMENTE", colors["successfully"])
+            descarga_exitosa = descargar_subtítulos(ventana, url, destino)
+            if descarga_exitosa:
+                mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
+            else:
+                mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
         except Exception as e:
-            print(f"ERROR INESPERADO AL DESCARGAR SUBTÍTULOS: {e}")
+            mostrar_aviso(ventana, "ERROR INESPERADO AL DESCARGAR SUBTÍTULOS", colors["danger"])
+            return False
             
     def tarea():
         try:

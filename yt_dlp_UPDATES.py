@@ -1,6 +1,22 @@
 import asyncio
 import sys
-from importlib.metadata import version
+import datetime
+from importlib.metadata import version, PackageNotFoundError
+
+def registrar_version(paquete, archivo_log="paquetes_log.txt"):
+    try:
+        version_actual = version(paquete)
+    except PackageNotFoundError:
+        version_actual = "No instalado"
+
+    fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    linea = f"[{fecha}] {paquete}: {version_actual}\n"
+
+    with open(archivo_log, "a", encoding="utf-8") as f:
+        f.write(linea)
+
+    print(f"📜 Registro guardado en {archivo_log}")
+
 
 async def desinstalar_paquete(paquete):
     proc = await asyncio.create_subprocess_exec(
@@ -19,8 +35,6 @@ async def instalar_paquete(paquete):
     )
     await proc.wait()
     print(f"✅ {paquete} reinstalado correctamente.")
-
-print("Versión actual de yt-dlp:", version("yt-dlp"))
 
 async def actualizar_ctk():
     proc = await asyncio.create_subprocess_exec(

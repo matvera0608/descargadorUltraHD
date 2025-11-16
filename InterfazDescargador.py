@@ -3,6 +3,7 @@ import tkinter as tk
 from Downloader import *
 from ImagenesImportadas import *
 from Elementos import *
+from yt_dlp_UPDATES import *
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")

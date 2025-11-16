@@ -19,28 +19,28 @@ def obtener_subtítulos_disponibles(url):
             print("No hay subtítulos disponibles para el video")
             return
         
-        return list(subs.keys())
+    return list(subs.keys())
     
 def descargar_subtítulos(ventana, url, destino):
     try:
         idiomas = obtener_subtítulos_disponibles(url) or []
         if not idiomas:
-            print("⚠ No hay subtítulos disponibles.")
-            return None
-
+            mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["error"])
+            return
+        
         idioma_original_con_terminación_orig = [idioma for idioma in idiomas if idioma.endswith("-orig")]
         
         idioma_seleccionado = idioma_original_con_terminación_orig[0] if idioma_original_con_terminación_orig else idiomas[0]
         
         base_opts = {
                 "logger": None,
+                "no_warnings": True,
                 "skip_download": True,
                 "writesubtitles": True,
                 "writeautomaticsub": True,
                 "subtitlesformat": "srt",
                 "writeautomaticsub": True,
                 "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
-                "extractor_args": {"youtube": {"player_client": ["web"]}},
                 "merge_output_format": "mp4",
                 }
     
@@ -62,10 +62,11 @@ def descargar_subtítulos(ventana, url, destino):
         
         with YoutubeDL(base_opts) as ydl:
             ydl.download([url])
- 
+            
+        return True
     except Exception as e:
         print(f"Error: {e}")
-        return None
+        return False
     
 
 def limpiar_repeticiones(ruta_srt):
