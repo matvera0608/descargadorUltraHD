@@ -1,4 +1,5 @@
 from tkinter import filedialog as diálogo
+import tkinter as tk
 import customtkinter as ctk
 import threading as subproceso
 from yt_dlp import YoutubeDL
@@ -69,22 +70,6 @@ def descargar(ventana, url, formato, subtitulos):
     
     plantilla = os.path.join(destino, "%(title)s.mp4")
     
-     # ------------------------------------------
-    # Verificar si el archivo ya existe antes de descargar
-    try:
-        with YoutubeDL({"skip_download": True, "quiet": False, "no_warnings": False, "outtmpl": plantilla}) as ydl:
-            info = ydl.extract_info(url, download=False)
-            nombre_prueba = ydl.prepare_filename(info)
-    except Exception as e:
-        print(f"No se pudo extraer info: {e}")
-        nombre_prueba = os.path.join(destino, "video.mp4")
-        
-        
-    if os.path.exists(nombre_prueba):
-        mostrar_aviso(ventana, "⚠ El archivo ya existe\nen la ubicación seleccionada.", color=colors["alert"])
-        ventanaProgreso.after(3000, ventanaProgreso.destroy)
-        return
-    
     formatoYDL, procesoCodificación = optar(formato)
     
     mostrar_descarga()
@@ -108,7 +93,6 @@ def descargar(ventana, url, formato, subtitulos):
                 descarga_segura_resistente_a_fallos(barra, lambda: barra.set(1))
                 descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_porcentaje.configure(text="100%"))
                 descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="✅ Descarga completada."))
-                mostrar_aviso(ventana, "Descarga completada con éxito.", color=colors["successfully"])
                 if ventanaProgreso and ventanaProgreso.winfo_exists(): #Ahora ejecuta el cierre de la ventana de progreso cuando la descarga se completa o cancela
                     ventanaProgreso.after(1500, ventanaProgreso.destroy)
             else:
@@ -128,9 +112,36 @@ def descargar(ventana, url, formato, subtitulos):
             except Exception as e:
                 print(f"No se pudo eliminar el archivo temporal: {e}")
 
+
+    # ------------------------------------------
+    # Verificar si el archivo ya existe antes de descargar
+    try:
+        archivo_existe = False
+        with YoutubeDL({"skip_download": True, "quiet": False, "no_warnings": False, "outtmpl": plantilla}) as ydl:
+            info = ydl.extract_info(url, download=False)
+            nombre_prueba = ydl.prepare_filename(info)
+    except Exception as e:
+        print(f"No se pudo extraer info: {e}")
+        nombre_prueba = os.path.join(destino, "video.mp4")
+        
+    if os.path.exists(nombre_prueba):
+        archivo_existe = True
+        mostrar_aviso(ventana, "⚠ El archivo ya existe\nen la ubicación seleccionada.", color=colors["alert"])
+        # Cerrar la ventana de progreso de forma segura
+        try:
+            if ventanaProgreso and ventanaProgreso.winfo_exists():
+                ventanaProgreso.after(2000, ventanaProgreso.destroy)
+        except tk.TclError:
+            pass
+        if not subtitulos:
+            return
+    
     ydl_opts = {
         "outtmpl": plantilla,
         "format": formatoYDL,
+        "quiet": True,
+        "logger": None,
+        "no_warnings": True,
         "merge_output_format": "mp4",
         "progress_hooks": [hook_progreso],
         "show_progress": False,
@@ -145,14 +156,13 @@ def descargar(ventana, url, formato, subtitulos):
         }
     
     if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
-            procesar_cookies()
-            ydl_opts.update({
-                "cookiefile": carpeta_destino_cookies,
-                "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Referer": "https://www.bilibili.com/",
-                }
-            })
+        ydl_opts.update({
+            "cookiefile": carpeta_destino_cookies,
+            "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Referer": "https://www.bilibili.com/",
+            }
+        })
     
     if subtitulos:
         try:
@@ -165,18 +175,31 @@ def descargar(ventana, url, formato, subtitulos):
         except Exception as e:
             mostrar_aviso(ventana, "ERROR INESPERADO AL DESCARGAR SUBTÍTULOS", colors["danger"])
             return False
+    
+    # Si el archivo ya existe y no hay subtítulos que descargar, retorna sin descargar video
+    if archivo_existe:
+        try:
+            if ventanaProgreso and ventanaProgreso.winfo_exists():
+                ventanaProgreso.destroy()
+        except tk.TclError:
+            pass
+        return
             
     def tarea():
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
+                mostrar_aviso(ventana, "Descarga completada con éxito.", color=colors["successfully"])
         except DownloadError as excepción:
-            if "No video formats found" in str(excepción):
-                print("⚠ yt-dlp no pudo extraer el video. Puede estar restringido o requerir autenticación avanzada.")
-            elif "Unable to download webpage" in str(excepción):
+            if "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
             else:
                 print(f"\n Error")
         finally:
-            ventanaProgreso.after(100, ventanaProgreso.destroy)
+            try:
+                if ventanaProgreso and ventanaProgreso.winfo_exists():
+                    ventanaProgreso.after(100, ventanaProgreso.destroy)
+            except tk.TclError:
+                pass
+            
     subproceso.Thread(target=tarea, daemon=True).start()

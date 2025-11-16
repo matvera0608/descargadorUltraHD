@@ -28,16 +28,19 @@ def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=(
                           corner_radius=8, font=fuente, fg_color=colorFondo, hover_color=hover, text_color=colorLetra, cursor="hand2", state=estado)
 
 def habilitar(evento=None):
-     entry_Link.configure(state="normal")
+     try:
+          entry_Link.configure(state="normal")
 
-     link_valor = entry_Link.get().strip()
-     
-     if link_valor:
-          chBox_subtitular.configure(state="normal")
-          btnDescargar.configure(state="normal")
-     else:
-          chBox_subtitular.configure(state="disabled")
-          btnDescargar.configure(state="disabled")
+          link_valor = entry_Link.get().strip()
+          
+          if link_valor:
+               chBox_subtitular.configure(state="normal")
+               btnDescargar.configure(state="normal")
+          else:
+               chBox_subtitular.configure(state="disabled")
+               btnDescargar.configure(state="disabled")
+     except tk.TclError:
+          pass
 
 
 interfaz = ctk.CTk()
