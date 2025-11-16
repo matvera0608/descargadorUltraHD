@@ -43,6 +43,13 @@ async def actualizar_ctk():
         stderr=asyncio.subprocess.DEVNULL
     )
     await proc.wait()
+    
+    if proc.returncode != 0:
+        print("⚠ Error al actualizar CustomTkinter. Intentando reinstalación limpia...")
+        await desinstalar_paquete("customtkinter")
+        await instalar_paquete("customtkinter")
+    else:
+        print("✅ CustomTkinter actualizado correctamente.")
 
 async def actualizar_ytdlp():
     proc = await asyncio.create_subprocess_exec(

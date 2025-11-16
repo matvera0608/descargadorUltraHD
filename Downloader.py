@@ -168,6 +168,6 @@ def descargar(ventana, url, formato, subtitulos):
             elif "Unable to download webpage" in str(excepción):
                 print("\n ERROR DE CONEXIÓN en el video")
             else:
-                print(f"\n Error: {excepción}")
+                print(f"\n Error")
     
     subproceso.Thread(target=tarea, daemon=True).start()
