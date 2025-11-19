@@ -32,6 +32,6 @@ def mostrar_aviso(contenedor, texto, color=None, milisegundos=5000):
   color_actual = contenedor.cget("fg_color")  # color de fondo del contenedor
 
   aviso = ctk.CTkLabel(contenedor, text=texto, text_color=color, font=("Arial", 20, "bold"))
-  aviso.configure(fg_color=color_actual)  # antes era bg  pero en customtkinter es fg_color
+  aviso.configure(fg_color=color_actual)
   aviso.place(relx=0.5, rely=0.9, anchor="center")
   contenedor.after(milisegundos, aviso.destroy)

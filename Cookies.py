@@ -14,12 +14,16 @@ def procesar_cookies():
     mejor_archivo = None
     mejor_puntaje = -1
 
-    for archivo in archivos_de_cookies:
+    for archivo in archivos_de_cookies: #Este for busca el mejor archivo de cookies basado en ciertos criterios
+        nombre_archivo = os.path.basename(archivo).lower()
+        
+        if not nombre_archivo:
+            return
         try:
-            with open(archivo, "r", encoding="utf-8", errors="ignore") as f:
+            with open(archivo, "r", encoding="utf-8", errors="ignore") as f: #El with abre el archivo de cookies
                 contenido = f.read()
         except Exception:
-            continue
+            continue #Si no se puede leer el archivo, se salta al siguiente
 
         puntaje = 0
 
@@ -37,12 +41,17 @@ def procesar_cookies():
         return
 
     print(f"✅ Mejor cookie seleccionada: {os.path.basename(mejor_archivo)}")
+    
+    try:
+        os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
+            
+        if os.path.exists(carpeta_destino_cookies):
+            os.remove(carpeta_destino_cookies)
 
-    os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
-
-    if os.path.exists(carpeta_destino_cookies):
-        os.remove(carpeta_destino_cookies)
-
-    shutil.move(mejor_archivo, carpeta_destino_cookies)
-    print(f"📦 Cookie movida a: {carpeta_destino_cookies}")
-    print("🎉 Listo para usar BiliBili con login.")
+        shutil.move(mejor_archivo, carpeta_destino_cookies)
+        print(f"📦 Cookie movida a: {carpeta_destino_cookies}")
+        print("🎉 Listo para usar BiliBili con login.")
+    except Exception as e:
+        print(f"Error al procesar la cookie: {e}")
+        return
+    

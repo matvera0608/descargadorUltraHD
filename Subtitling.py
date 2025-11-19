@@ -29,6 +29,7 @@ def descargar_subtítulos(ventana, url, destino):
     try:
         base_opts = {
                 "logger": None,
+                "quiet": True,
                 "no_warnings": True,
                 "skip_download": True,
                 "writesubtitles": True,
@@ -41,10 +42,7 @@ def descargar_subtítulos(ventana, url, destino):
     
         es_de_bilibili = "bilibili" in url.lower()
         if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
-            if os.path.exists(carpeta_destino_cookies):
-                print("✅ Usando cookie ya procesada en destino.")
-            else:
-                procesar_cookies()
+            # procesar_cookies() if not os.path.exists(carpeta_destino_cookies) else None
             base_opts.update({
                 "cookiefile": carpeta_destino_cookies,
                 "logger": None,
@@ -60,7 +58,10 @@ def descargar_subtítulos(ventana, url, destino):
                 
             subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
             idiomas = [i for i in subs.keys() if i != "danmaku"]
-            if not idiomas:
+            if not idiomas and "subtitles" in info:
+                mostrar_aviso(ventana, "Es necesario procesar tus cookies.", colors["alert"])
+                return None
+            elif not idiomas:
                 mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
                 return None
             

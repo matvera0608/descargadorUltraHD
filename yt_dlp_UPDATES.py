@@ -2,14 +2,7 @@ import asyncio
 import sys
 import datetime
 from importlib.metadata import version, PackageNotFoundError
-import socket
 
-def hay_internet(host="www.google.com", port=80, timeout=3):
-    try:
-        socket.create_connection((host, port), timeout=timeout)
-        return True
-    except OSError:
-        return False
 
 
 def registrar_version(paquete, archivo_log="paquetes_log.txt"):

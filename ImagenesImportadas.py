@@ -7,7 +7,7 @@ directorio = os.path.dirname(__file__)
 
 
 # --- FUNCIÓN PARA CARGAR IMAGENES ---
-def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(50, 50)):
+def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(100, 100)):
     ruta = os.path.join(directorio, ruta_subcarpeta_imagen, nombre_imagen)
     if not os.path.exists(ruta):
         print(f"Imagen no encontrada: {ruta}")
