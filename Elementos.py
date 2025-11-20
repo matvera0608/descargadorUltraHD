@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import re
 
 # Paleta personalizada (usa tus hex o nombres preferidos)
 colors = {
@@ -13,12 +14,14 @@ colors = {
     "alert": "#f5bb0b"
 }
 
+urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
+
+
 def descarga_segura_resistente_a_fallos(widget, acción):
   if widget.winfo_exists():
     widget.after(0, acción)
 
 def mostrar_aviso(contenedor, texto, color=None, milisegundos=5000):
-  
   # Asegúrate de que las indentaciones coincidan EXACTAMENTE con este ejemplo:
   for widget in contenedor.winfo_children():
         if isinstance(widget, ctk.CTkLabel) and str(widget) == "aviso_temporal":

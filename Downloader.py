@@ -56,14 +56,7 @@ def optar(tipoFormato):
                 )
 
 def descargar(ventana, url, formato, subtitulos):
-    urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
-    es_de_bilibili = "bilibili" in url.lower()
-    if not url.strip():
-        return
-    elif not urlHTTP.match(url):
-        mostrar_aviso(ventana, "El tipo de dato es inválido", colors["danger"])
-        return
-    
+    es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
         return
@@ -73,8 +66,6 @@ def descargar(ventana, url, formato, subtitulos):
     formatoYDL, procesoCodificación = optar(formato)
     
     mostrar_descarga()
-    
-    mensaje = "El archivo descargado ya existe\n"
     
     # --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
     # durante la descarga para actualizar la interfaz de usuario
@@ -129,11 +120,19 @@ def descargar(ventana, url, formato, subtitulos):
         archivo_existe = True
         
         if subtitulos:
-            mensaje += "Se descargarán los subtítulos...\n(espera un momento)"
+            mensaje = "El archivo ya existe.\nSe descargarán los subtítulos..."
         else:
-            mensaje += "No se descargará nada"
-        
+            mensaje = "El archivo ya existe.\nNo se descargará nada."
+
         mostrar_aviso(ventana, mensaje, colors["alert"])
+        
+        try:
+            if ventanaProgreso and ventanaProgreso.winfo_exists():
+                ventanaProgreso.after(100, ventanaProgreso.destroy)
+        except tk.TclError:
+            pass
+
+
         
         if not subtitulos: # este not es para que si el archivo ya existe pero se quieren descargar subtítulos, lo permita.
             return
@@ -150,6 +149,7 @@ def descargar(ventana, url, formato, subtitulos):
         "noplaylist": True,
         "nooverwrites": True,
         "postprocessors": procesoCodificación,
+        "keepvideo": False,
         "postprocessor_args": [
             "-c:v", "copy",
             "-c:a", "aac",
@@ -168,9 +168,6 @@ def descargar(ventana, url, formato, subtitulos):
     
     if subtitulos:
         try:
-            mostrar_aviso(ventana, mensaje, colors["alert"])
-            ventana.after(1000, lambda: mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"]))
-        
             descarga_exitosa = descargar_subtítulos(ventana, url, destino)
             if descarga_exitosa:
                 mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
@@ -179,13 +176,13 @@ def descargar(ventana, url, formato, subtitulos):
             else:
                 mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
         except Exception as e:
+            ventanaProgreso.after(100, ventanaProgreso.destroy)
             print(f"Error al descargar subtítulos: {e}")
             return False
     
     if archivo_existe:
         try:
-            if ventanaProgreso and ventanaProgreso.winfo_exists():
-                ventanaProgreso.destroy()
+            ventanaProgreso.destroy()
         except tk.TclError:
             pass
         return
@@ -195,11 +192,8 @@ def descargar(ventana, url, formato, subtitulos):
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
                 mostrar_aviso(ventana, "Descarga completada con éxito.", colors["successfully"])
-        except DownloadError as excepción:
-            if "Unable to download webpage" in str(excepción):
-                print("\n ERROR DE CONEXIÓN en el video")
-            else:
-                print(f"\n Error")
+        except DownloadError:
+            print(f"\n Error")
         finally:
             try:
                 if ventanaProgreso and ventanaProgreso.winfo_exists():

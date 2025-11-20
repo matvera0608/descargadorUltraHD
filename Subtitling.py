@@ -5,7 +5,7 @@ from Elementos import *
 from yt_dlp_UPDATES import *
 
 #¿Igual este sirve para determinar los subtítulos disponibles?
-def obtener_subtítulos_disponibles(url): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
+def obtener_subtítulos_disponibles(url, ventana=None): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
     subt_ydl_opts = {
         "quiet": True,
         "no_warnings": True,
@@ -17,9 +17,11 @@ def obtener_subtítulos_disponibles(url): #Obtiene los idiomas de subtítulos di
             info = ydl.extract_info(url, download=False)
             subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
             if not subs:
-                print("No hay subtítulos disponibles para el video")
+                if ventana:
+                    mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
+                else:
+                    print("No hay subtítulos disponibles.")
                 return []
-            
         return list(subs.keys())
     except Exception as e:
         print(f"Error al obtener subtítulos: {e}")
@@ -73,6 +75,7 @@ def descargar_subtítulos(ventana, url, destino):
                 return False
             idioma_original = next((i for i in idiomas if i.endswith("-orig")), idiomas[0])   
         #ACÁ COMIENZA EL PROCESAMIENTO DE SUBTÍTULOS
+        ventana.after(1000, lambda: mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"]))
         base_opts.update({"subtitleslangs": [idioma_original]})
         with YoutubeDL(base_opts) as ydl:
             ydl.download([url])

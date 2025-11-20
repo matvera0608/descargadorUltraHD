@@ -27,20 +27,30 @@ def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=(
                           corner_radius=8, font=fuente, fg_color=colorFondo, hover_color=hover, text_color=colorLetra, cursor="hand2", state=estado)
 
 def habilitar(evento=None):
-     try:
+    try:
           entry_Link.configure(state="normal")
-
           link_valor = entry_Link.get().strip()
-          
-          if link_valor:
+
+          # Si está vacío: deshabilitar todo
+          if not link_valor:
+               chBox_subtitular.configure(state="disabled")
+               btnDescargar.configure(state="disabled")
+               return
+
+          # Validar URL sin borrar texto
+          if urlHTTP.match(link_valor):
                chBox_subtitular.configure(state="normal")
                btnDescargar.configure(state="normal")
           else:
+          # URL inválida → deshabilitar botones, pero NO borrar el texto
                chBox_subtitular.configure(state="disabled")
                btnDescargar.configure(state="disabled")
-     except tk.TclError:
-          pass
-
+            
+          if evento and evento.type == "FocusOut":
+               if not urlHTTP.match(link_valor):
+                    entry_Link.delete(0, tk.END)
+    except tk.TclError:
+        pass
 
 interfaz = ctk.CTk()
 interfaz.title("aTube Ramiro")
@@ -82,6 +92,7 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
+
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
 
