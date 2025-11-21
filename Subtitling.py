@@ -4,8 +4,24 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
+
+def procesar_subtítulos(ventana, url, destino, progreso):
+  try:
+    descarga_exitosa = descargar_subtítulos(ventana, url, destino)
+    if descarga_exitosa:
+        mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
+    elif descarga_exitosa is None:
+        pass
+    else:
+        mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
+  except Exception as e:
+    cerrar_seguro(progreso)
+    print(f"Error al descargar subtítulos: {e}")
+    return False
+
+
 #¿Igual este sirve para determinar los subtítulos disponibles?
-def obtener_subtítulos_disponibles(url, ventana=None): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
+def obtener_subtítulos_disponibles(url): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
     subt_ydl_opts = {
         "quiet": True,
         "no_warnings": True,
@@ -16,13 +32,7 @@ def obtener_subtítulos_disponibles(url, ventana=None): #Obtiene los idiomas de 
         with YoutubeDL(subt_ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
-            if not subs:
-                if ventana:
-                    mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-                else:
-                    print("No hay subtítulos disponibles.")
-                return []
-        return list(subs.keys())
+            return list(subs.keys()) if subs else []
     except Exception as e:
         print(f"Error al obtener subtítulos: {e}")
         return []
@@ -72,10 +82,8 @@ def descargar_subtítulos(ventana, url, destino):
             idiomas = obtener_subtítulos_disponibles(url)
             if not idiomas:
                 mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-                return False
+                return None
             idioma_original = next((i for i in idiomas if i.endswith("-orig")), idiomas[0])   
-        #ACÁ COMIENZA EL PROCESAMIENTO DE SUBTÍTULOS
-        ventana.after(1000, lambda: mostrar_aviso(ventana, "DESCARGANDO SUBTÍTULO", colors["text"]))
         base_opts.update({"subtitleslangs": [idioma_original]})
         with YoutubeDL(base_opts) as ydl:
             ydl.download([url])

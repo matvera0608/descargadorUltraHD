@@ -5,7 +5,7 @@ import threading as subproceso
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import re, os
-from Subtitling import descargar_subtítulos
+from Subtitling import procesar_subtítulos
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
@@ -23,7 +23,11 @@ def mostrar_descarga():
     ventanaProgreso = ctk.CTkToplevel()
     ventanaProgreso.title("En proceso")
     ventanaProgreso.resizable(False, False)
-
+    
+    ventanaProgreso.lift()        # la trae al frente
+    ventanaProgreso.focus_force() # le da 
+    ventanaProgreso.attributes("-topmost", True)
+    ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
     lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 20))
     lbl_estado.pack(pady=10)
 
@@ -33,6 +37,8 @@ def mostrar_descarga():
 
     lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=("Segoe UI", 10))
     lbl_porcentaje.pack(pady=5)
+    
+    ventanaProgreso.grab_set()
     
     if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
         print("⚠ La ventana de progreso no está inicializada.")
@@ -88,6 +94,9 @@ def descargar(ventana, url, formato, subtitulos):
                 descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="✅ Descarga completada."))
                 if ventanaProgreso and ventanaProgreso.winfo_exists(): #Ahora ejecuta el cierre de la ventana de progreso cuando la descarga se completa o cancela
                     ventanaProgreso.after(1500, ventanaProgreso.destroy)
+                    # y al cerrar:
+                    ventanaProgreso.attributes("-topmost", False)
+
             else:
                 descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="❌ Descarga fallida."))
                 if ventanaProgreso and ventanaProgreso.winfo_exists():
@@ -115,27 +124,24 @@ def descargar(ventana, url, formato, subtitulos):
     except Exception as e:
         print(f"No se pudo extraer info: {e}")
         nombre_prueba = os.path.join(destino, "video.mp4")
-        
-    if os.path.exists(nombre_prueba):
+
+
+    if os.path.exists(nombre_prueba): #Este es verdadero cuando intento de descargar un arachivo existente
         archivo_existe = True
         
         if subtitulos:
-            mensaje = "El archivo ya existe.\nSe descargarán los subtítulos..."
+            mostrar_aviso(ventana, "El archivo ya existe.\nSe descargarán los subtítulos si están disponibles...", colors["alert"])
+            ventana.update_idletasks()
         else:
-            mensaje = "El archivo ya existe.\nNo se descargará nada."
-
-        mostrar_aviso(ventana, mensaje, colors["alert"])
-        
-        try:
-            if ventanaProgreso and ventanaProgreso.winfo_exists():
-                ventanaProgreso.after(100, ventanaProgreso.destroy)
-        except tk.TclError:
-            pass
-
-
-        
-        if not subtitulos: # este not es para que si el archivo ya existe pero se quieren descargar subtítulos, lo permita.
+            mostrar_aviso(ventana, "El archivo ya existe.\nNo se descargará nada.", colors["alert"])
+            print("El archivo ya existe. No se descargará nada.")
+            cerrar_seguro(ventanaProgreso)
             return
+    else:
+        if subtitulos:
+            mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
+        else:
+            mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
     
     ydl_opts = {
         "outtmpl": plantilla,
@@ -167,24 +173,10 @@ def descargar(ventana, url, formato, subtitulos):
         })
     
     if subtitulos:
-        try:
-            descarga_exitosa = descargar_subtítulos(ventana, url, destino)
-            if descarga_exitosa:
-                mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
-            elif descarga_exitosa is None:
-                pass
-            else:
-                mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
-        except Exception as e:
-            ventanaProgreso.after(100, ventanaProgreso.destroy)
-            print(f"Error al descargar subtítulos: {e}")
-            return False
+        procesar_subtítulos(ventana, url, destino, ventanaProgreso)
     
     if archivo_existe:
-        try:
-            ventanaProgreso.destroy()
-        except tk.TclError:
-            pass
+        cerrar_seguro(ventanaProgreso)
         return
             
     def tarea():
@@ -198,6 +190,7 @@ def descargar(ventana, url, formato, subtitulos):
             try:
                 if ventanaProgreso and ventanaProgreso.winfo_exists():
                     ventanaProgreso.after(100, ventanaProgreso.destroy)
+                    print("ventanaProgreso:", ventanaProgreso, "existe:", ventanaProgreso.winfo_exists() if ventanaProgreso else None)
             except tk.TclError:
                 pass
             

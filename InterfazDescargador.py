@@ -3,6 +3,7 @@ import tkinter as tk
 from Downloader import *
 from ImagenesImportadas import *
 from Elementos import *
+from yt_dlp_UPDATES import *
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -100,5 +101,11 @@ btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interf
                image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
                hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"⚠ Error en actualización: {e}")
 
 interfaz.mainloop()

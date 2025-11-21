@@ -3,8 +3,6 @@ import sys
 import datetime
 from importlib.metadata import version, PackageNotFoundError
 
-
-
 def registrar_version(paquete, archivo_log="paquetes_log.txt"):
     try:
         version_actual = version(paquete)
@@ -70,7 +68,7 @@ async def actualizar_ytdlp():
 
 async def main():
     await asyncio.gather(actualizar_ctk(), actualizar_ytdlp())
-
+    
 if __name__ == "__main__":
     try:
         print("Versión actual de yt-dlp:", version("yt-dlp"))
