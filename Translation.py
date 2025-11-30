@@ -1,4 +1,8 @@
 from yt_dlp import YoutubeDL
+import pysrt
+from deep_translator import GoogleTranslator
+
+
 
 def listar_lenguas(url): #Esta función se encarga de listar los idiomas de los subtítulos disponibles:  para ello usa yt-dlp, YouTube Downloader Plus
     global info

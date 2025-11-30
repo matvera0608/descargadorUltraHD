@@ -102,10 +102,4 @@ btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interf
                hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
 
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except Exception as e:
-        print(f"⚠ Error en actualización: {e}")
-
 interfaz.mainloop()
