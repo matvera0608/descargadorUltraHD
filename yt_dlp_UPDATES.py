@@ -17,7 +17,6 @@ def registrar_version(paquete, archivo_log="paquetes_log.txt"):
 
     print(f"📜 Registro guardado en {archivo_log}")
 
-
 async def desinstalar_paquete(paquete):
     proc = await asyncio.create_subprocess_exec(
         sys.executable, "-m", "pip", "uninstall", "-y", paquete,

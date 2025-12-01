@@ -85,6 +85,7 @@ cbBox_formatos.configure(command = lambda e: habilitar())
 #Para mí es mucho más práctico usar configure que command habilitar porque la diferencia es que este tira un error de que las variables no están definidas.
 
 bool_subtitular = ctk.BooleanVar(value=False)
+bool_traducir = ctk.BooleanVar(value=False)
 
 chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
 chBox_subtitular.place(relx=0.825, rely=0.45)
