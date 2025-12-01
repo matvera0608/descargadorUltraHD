@@ -1,6 +1,6 @@
-import customtkinter as ctk
 import tkinter as tk
 from Downloader import *
+from Widgets import *
 from ImagenesImportadas import *
 from Elementos import *
 from yt_dlp_UPDATES import *
@@ -8,24 +8,6 @@ from yt_dlp_UPDATES import *
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-def crearMarco(contenedor, ancho=500, alto=500):
-     return ctk.CTkFrame(contenedor, width=ancho, height=alto)
-
-def crearBotónChequeo(contenedor, texto, variable_de_selección, fuente=("Arial", 10), estado="disabled"):
-     return ctk.CTkCheckBox(contenedor, text=texto, font=fuente, variable=variable_de_selección, state=estado)
-
-def crearListaDesplegable(contenedor, valor=["mp4", "mp3"], ancho=10, estado="readonly"):
-     return ctk.CTkComboBox(contenedor, values=valor, width=ancho, state=estado)
-
-def crearEtiqueta(contenedor, texto, fuente=("Arial", 10)):
-     return ctk.CTkLabel(contenedor, text=texto, font=fuente)
-
-def crearEntradaLink(contenedor, ancho=40, fuente=("Arial", 10), estado="disabled"):
-     return ctk.CTkEntry(contenedor, width=ancho, font=fuente, state=estado)
-
-def crearBotón(contenedor, texto, comando, imagen,  ancho=50, alto=25, fuente=("Arial", 10), colorFondo="blue", colorLetra="white", hover="#1d4ed8", estado="disabled"):
-     return ctk.CTkButton(contenedor, text=texto, command= lambda: comando(), image=imagen, compound="top", width=ancho, height=alto,
-                          corner_radius=8, font=fuente, fg_color=colorFondo, hover_color=hover, text_color=colorLetra, cursor="hand2", state=estado)
 
 def habilitar(evento=None):
     try:
@@ -59,17 +41,17 @@ interfaz.geometry("500x500")
 interfaz.iconbitmap(ícono)
 
 # Crear la barra de menú con tk.Menu
-barra_menu = tk.Menu(interfaz)
+barra_menu = crearMenú(interfaz)
 interfaz.config(menu=barra_menu)
 
-menu_opciones = tk.Menu(barra_menu, tearoff=0)
+menu_opciones = crearMenú(barra_menu)
 menu_opciones.add_command(label="Traducir", command=lambda: print("Traduciendo..."))
 menu_opciones.add_command(label="Importar", command=lambda: print("Importando..."))
 menu_opciones.add_command(label="Exportar", command=lambda: print("Exportando..."))
 barra_menu.add_cascade(label="Opciones", menu=menu_opciones)
 
 # Menú Ayuda
-menu_ayuda = tk.Menu(barra_menu, tearoff=0)
+menu_ayuda = crearMenú(barra_menu)
 menu_ayuda.add_command(label="Manual", command=lambda: print("Mostrar manual"))
 menu_ayuda.add_command(label="Métodos abreviados", command=lambda: print("Mostrar atajos"))
 menu_ayuda.add_separator()
@@ -88,7 +70,10 @@ bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)
 
 chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
-chBox_subtitular.place(relx=0.825, rely=0.45)
+chBox_subtitular.place(relx=0.825, rely=0.5)
+
+chBox_traducir = crearBotónChequeo(interfaz, "Traducir\nSubtítulos", bool_traducir)
+chBox_traducir.place(relx=0.825, rely=0.375)
 
 crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier plataforma: ").place(relx=0.5, rely=0.35, anchor="center")
 entry_Link = crearEntradaLink(interfaz)

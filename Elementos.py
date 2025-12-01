@@ -4,8 +4,7 @@ import tkinter as tk
 
 # Paleta personalizada (usa tus hex o nombres preferidos)
 colors = {
-    "background": "#0f1724",
-    "surface": "#111827",
+    "background": "#242424",
     "primary": "#2563eb",
     "primary_hover": "#1d4ed8",
     "accent": "#06b6d4",
