@@ -10,20 +10,29 @@ from yt_dlp_UPDATES import *
 
 def optar(tipoFormato):
     match tipoFormato:
+
         case "mp4":
-            return (
-                "bestvideo+bestaudio/best",
-                [
+            return {
+                "format": "bestvideo[vcodec!=av1][ext=mp4]+bestaudio[ext=m4a]/best",
+                "postprocessors": [
                     {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"},
                 ],
-                )
+                "merge": True
+            }
+
         case "mp3":
-            return (
-                    "bestaudio/best",
-                    [
-                        {"key": "FFmpegExtractAudio", "preferredcodec": "aac", "preferredquality": "192"},
-                    ],
-                    )
+            return {
+                "format": "bestaudio/best",
+                "postprocessors": [
+                    {
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "mp3",
+                        "preferredquality": "192"
+                    }
+                ],
+                "merge": False
+            }
+
 
 def descargar(ventana, url, formato, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
@@ -32,9 +41,12 @@ def descargar(ventana, url, formato, subtitulos):
         return
 
     plantilla = os.path.join(destino, "%(title)s.mp4")
-
-    formatoYDL, procesoCodificación = optar(formato)
-
+    
+    configuración = optar(formato)
+    formatoYDL = configuración["format"]
+    proceso_de_codificación = configuración["postprocessors"]
+    merge_output = configuración["merge"]
+    
     mostrar_descarga()
     # ------------------------------------------
     # Verificar si el archivo ya existe antes de descargar
@@ -66,24 +78,16 @@ def descargar(ventana, url, formato, subtitulos):
             mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
 
     ydl_opts = {
-        "outtmpl": plantilla,
-        "format": formatoYDL,
-        "quiet": True,
-        "logger": None,
-        "no_warnings": True,
-        "merge_output_format": "mp4",
-        "progress_hooks": [hook_progreso],
-        "show_progress": False,
-        "noplaylist": True,
-        "nooverwrites": True,
-        "postprocessors": procesoCodificación,
-        "keepvideo": False,
-        "postprocessor_args": [
-            "-c:v", "copy",
-            "-c:a", "aac",
-            "-b:a", "192k" 
-            ]
-        }
+                "outtmpl": plantilla,
+                "format": formatoYDL,
+                "quiet": True,
+                "no_warnings": True,
+                "progress_hooks": [hook_progreso],
+                "noplaylist": True,
+                "nooverwrites": True,
+                "postprocessors": proceso_de_codificación if merge_output else [],
+                }
+
 
     if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
         ydl_opts.update({
@@ -91,9 +95,8 @@ def descargar(ventana, url, formato, subtitulos):
             "http_headers": {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "Referer": "https://www.bilibili.com/",
-            },
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best"
-        })
+                            },
+                        })
 
     if subtitulos:
         procesar_subtítulos(ventana, url, destino, ventanaProgreso)

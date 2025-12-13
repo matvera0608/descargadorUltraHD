@@ -1,3 +1,4 @@
+from ImagenesImportadas import *
 import customtkinter as ctk
 import re, os
 import tkinter as tk
@@ -45,24 +46,28 @@ def limpiar_ansi(texto):
 def mostrar_descarga():
   global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
   
+  fuente_letra = ("Arial", 15)
+  
   # --- Ventana de progreso ---
   ventanaProgreso = ctk.CTkToplevel()
   ventanaProgreso.title("En proceso")
-  ventanaProgreso.geometry("600x300")
+  ventanaProgreso.geometry("600x100")
   ventanaProgreso.resizable(False, False)
+  ventanaProgreso.configure(fg_color=colors["background"])
+  ventanaProgreso.iconbitmap(ícono)
   
   ventanaProgreso.lift()
   ventanaProgreso.focus_force()
   ventanaProgreso.attributes("-topmost", True)
   ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
-  lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 20))
+  lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=fuente_letra)
   lbl_estado.pack(pady=10)
 
   barra = ctk.CTkProgressBar(ventanaProgreso, width=250)
   barra.pack(pady=10)
   barra.set(0)
 
-  lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=("Segoe UI", 10))
+  lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=fuente_letra)
   lbl_porcentaje.pack(pady=5)
   
   ventanaProgreso.grab_set()
