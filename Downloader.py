@@ -13,11 +13,13 @@ def optar(tipoFormato):
 
         case "mp4":
             return {
-                "format": "bestvideo[vcodec!=av1][ext=mp4]+bestaudio[ext=m4a]/best",
-                "postprocessors": [
-                    {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"},
-                ],
-                "merge": True
+                "format": (
+                    "bestvideo+bestaudio/"
+                    "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
+                    "best"
+                ),
+                "postprocessors": [],
+                "merge": False
             }
 
         case "mp3":
@@ -87,7 +89,6 @@ def descargar(ventana, url, formato, subtitulos):
                 "nooverwrites": True,
                 "postprocessors": proceso_de_codificación if merge_output else [],
                 }
-
 
     if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
         ydl_opts.update({
