@@ -8,7 +8,7 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
-def optar(tipoFormato):
+def optar(tipoFormato, plataforma):
     match tipoFormato:
 
         case "mp4":
