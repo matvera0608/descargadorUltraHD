@@ -10,17 +10,26 @@ from yt_dlp_UPDATES import *
 
 def optar(tipoFormato, plataforma):
     match tipoFormato:
-
         case "mp4":
-            return {
-                "format": (
-                    "bestvideo+bestaudio/"
-                    "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
-                    "best"
-                ),
-                "postprocessors": [],
-                "merge": False
-            }
+            if plataforma == "bilibili":
+                return {
+                    "format": (
+                        "bestvideo[vcodec^=hev1]+bestaudio/"
+                        "bestvideo[vcodec^=avc1]+bestaudio/"
+                        "best"
+                    ),
+                    "postprocessors": [],
+                    "merge": False
+                }
+            else:
+                return {
+                    "format": (
+                        "bestvideo+bestaudio/"
+                        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best"
+                    ),
+                    "postprocessors": [],
+                    "merge": False
+                }
 
         case "mp3":
             return {
@@ -36,6 +45,7 @@ def optar(tipoFormato, plataforma):
             }
 
 
+
 def descargar(ventana, url, formato, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
@@ -44,7 +54,7 @@ def descargar(ventana, url, formato, subtitulos):
 
     plantilla = os.path.join(destino, "%(title)s.mp4")
     
-    configuración = optar(formato)
+    configuración = optar(formato, "bilibili" if es_de_bilibili else "otra") # Obtener configuración según formato y plataforma, Bilibili cambia constantemente de backend, por eso se detecta especialmente cuando descargo un stream de alta calidad.
     formatoYDL = configuración["format"]
     proceso_de_codificación = configuración["postprocessors"]
     merge_output = configuración["merge"]
