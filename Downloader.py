@@ -2,14 +2,11 @@ from tkinter import filedialog as diálogo
 import threading as subproceso
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
-import re, os
+import os
 from Subtitling import procesar_subtítulos
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
-
-
-
 
 def optar(tipoFormato):
     match tipoFormato:
@@ -19,14 +16,14 @@ def optar(tipoFormato):
                 [
                     {"key": "FFmpegVideoRemuxer", "preferedformat": "mp4"},
                 ],
-            )
+                )
         case "mp3":
             return (
                     "bestaudio/best",
                     [
                         {"key": "FFmpegExtractAudio", "preferredcodec": "aac", "preferredquality": "192"},
                     ],
-                )
+                    )
 
 def descargar(ventana, url, formato, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
@@ -39,7 +36,6 @@ def descargar(ventana, url, formato, subtitulos):
     formatoYDL, procesoCodificación = optar(formato)
 
     mostrar_descarga()
-    
     # ------------------------------------------
     # Verificar si el archivo ya existe antes de descargar
     archivo_existe = False
@@ -86,7 +82,7 @@ def descargar(ventana, url, formato, subtitulos):
             "-c:v", "copy",
             "-c:a", "aac",
             "-b:a", "192k" 
-            ],
+            ]
         }
 
     if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
@@ -95,7 +91,8 @@ def descargar(ventana, url, formato, subtitulos):
             "http_headers": {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "Referer": "https://www.bilibili.com/",
-            }
+            },
+        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best"
         })
 
     if subtitulos:

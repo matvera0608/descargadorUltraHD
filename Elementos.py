@@ -14,6 +14,8 @@ colors = {
     "alert": "#f5bb0b"
 }
 
+ventanaProgreso = None
+
 urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
 
 def cerrar_seguro(ventana):
@@ -30,7 +32,6 @@ def mostrar_seguro(ventana):
   except tk.TclError:
     pass
 
-
 def descarga_segura_resistente_a_fallos(widget, acción):
   if widget.winfo_exists():
     widget.after(0, acción)
@@ -42,32 +43,33 @@ def limpiar_ansi(texto):
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
 def mostrar_descarga():
-    global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
-    
-    # --- Ventana de progreso ---
-    ventanaProgreso = ctk.CTkToplevel()
-    ventanaProgreso.title("En proceso")
-    ventanaProgreso.resizable(False, False)
-    
-    ventanaProgreso.lift()        # la trae al frente
-    ventanaProgreso.focus_force() # le da 
-    ventanaProgreso.attributes("-topmost", True)
-    ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
-    lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 20))
-    lbl_estado.pack(pady=10)
+  global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
+  
+  # --- Ventana de progreso ---
+  ventanaProgreso = ctk.CTkToplevel()
+  ventanaProgreso.title("En proceso")
+  ventanaProgreso.geometry("600x300")
+  ventanaProgreso.resizable(False, False)
+  
+  ventanaProgreso.lift()
+  ventanaProgreso.focus_force()
+  ventanaProgreso.attributes("-topmost", True)
+  ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
+  lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=("Segoe UI", 20))
+  lbl_estado.pack(pady=10)
 
-    barra = ctk.CTkProgressBar(ventanaProgreso, width=250)
-    barra.pack(pady=10)
-    barra.set(0)
+  barra = ctk.CTkProgressBar(ventanaProgreso, width=250)
+  barra.pack(pady=10)
+  barra.set(0)
 
-    lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=("Segoe UI", 10))
-    lbl_porcentaje.pack(pady=5)
-    
-    ventanaProgreso.grab_set()
-    
-    if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
-        print("⚠ La ventana de progreso no está inicializada.")
-        return
+  lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=("Segoe UI", 10))
+  lbl_porcentaje.pack(pady=5)
+  
+  ventanaProgreso.grab_set()
+  
+  if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
+    print("⚠ La ventana de progreso no está inicializada.")
+    return
 
 # --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
 # durante la descarga para actualizar la interfaz de usuario
@@ -91,16 +93,15 @@ def hook_progreso(d):
       if ventanaProgreso and ventanaProgreso.winfo_exists(): #Ahora ejecuta el cierre de la ventana de progreso cuando la descarga se completa o cancela
         ventanaProgreso.after(1500, ventanaProgreso.destroy)
         ventanaProgreso.attributes("-topmost", False)
-
-      else:
-        descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="❌ Descarga fallida."))
-        if ventanaProgreso and ventanaProgreso.winfo_exists():
-          ventanaProgreso.after(1500, ventanaProgreso.destroy)
-          if temp_file and os.path.exists(temp_file) and temp_file.endswith('.part'):
-            try:
-              os.remove(temp_file)
-            except Exception as e:
-              print(f"No se pudo eliminar el archivo temporal: {e}")
+    else:
+      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="❌ Descarga fallida."))
+      if ventanaProgreso and ventanaProgreso.winfo_exists():
+        ventanaProgreso.after(1500, ventanaProgreso.destroy)
+        if temp_file and os.path.exists(temp_file) and temp_file.endswith('.part'):
+          try:
+            os.remove(temp_file)
+          except Exception as e:
+            print(f"No se pudo eliminar el archivo temporal: {e}")
                       
   except Exception as e:
     print(f"Error en el hook de progreso: {e}")
@@ -108,7 +109,6 @@ def hook_progreso(d):
       os.remove(temp_file)
     except Exception as e:
       print(f"No se pudo eliminar el archivo temporal: {e}")
-
 
 
 def mostrar_aviso(contenedor, texto, color=None, milisegundos=5000):
