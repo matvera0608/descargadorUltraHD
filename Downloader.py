@@ -8,7 +8,7 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
-def clasificar_calidad(info):
+def clasificar_calidad(info, plataforma="default"):
     formato = info.get("formats", [])
     mejor = None
     
@@ -26,35 +26,54 @@ def clasificar_calidad(info):
     es_vertical = altura > anchura
     tbr = mejor.get("tbr") or 0
     
-    if es_vertical:
-        resolución_base_real = min(anchura, altura)
-    else:
-        resolución_base_real = max(anchura, altura)
     
+    resolución_base_real = altura
+    
+    perfil_plataforma = CALIDAD_DE_VIDEO.get(plataforma, CALIDAD_DE_VIDEO["default"])
+
     
     if resolución_base_real >= 2160:
-        perfil = CALIDAD_DE_VIDEO[2160]
+       resultado_en_texto = "2160"
     elif resolución_base_real >= 1440:
-        perfil = CALIDAD_DE_VIDEO[1440]
+        resultado_en_texto = "1440"
     elif resolución_base_real >= 1080:
-        perfil = CALIDAD_DE_VIDEO[1080]
+        resultado_en_texto = "1080"
     elif resolución_base_real >= 720:
-        perfil = CALIDAD_DE_VIDEO[720]
+        resultado_en_texto = "720"
+    elif resolución_base_real >= 540:
+        resultado_en_texto = "540"
     else:
-        perfil = CALIDAD_DE_VIDEO[480]
+        resultado_en_texto = "480"
+        
+        
+    print("tbr:", tbr)
+    print("resolución_base_real:", resolución_base_real)
+    
 
+    codec = mejor.get("vcodec", "")
+    peso_codec = 1.0
+
+    for clave, peso in PESO_CODEC.items():
+        if codec.startswith(clave):
+            peso_codec = peso
+            break
+
+    tbr_perceptual = tbr * peso_codec
+    
+    perfil = perfil_plataforma.get(int(resultado_en_texto))
+    
     # Clasificación dinámica
-    if tbr >= perfil["excelente"]:
+    if tbr_perceptual >= perfil["excelente"]:
         return "Excelente"
-    elif tbr >= perfil["buena"]:
+    elif tbr_perceptual >= perfil["buena"]:
         return "Buena"
-    elif tbr >= perfil["regular"]:
+    elif tbr_perceptual >= perfil["regular"]:
         return "Regular"
-    elif tbr >= perfil["mala"]:
+    elif tbr_perceptual >= perfil["mala"]:
         return "Mala"
     else:
         return "Muy mala"
-      
+    
 def imprimir_calidad_real(info):
     formato = info.get("formats", [])
 
@@ -108,7 +127,6 @@ def optar(tipoFormato, plataforma):
                     "merge": False
                 }
 
-
         case "mp3":
             return {
                 "format": "bestaudio/best",
@@ -139,7 +157,7 @@ def descargar(ventana, url, formato, subtitulos):
     # Verificar si el archivo ya existe antes de descargar
     archivo_existe = False
     try:
-        with YoutubeDL({"skip_download": True, "quiet": True, "logger": None, "no_warnings": True, "outtmpl": plantilla}) as ydl:
+        with YoutubeDL({"skip_download": True, "quiet": True, "logger": None, "no_warnings": True, "outtmpl": plantilla, "show_progress": False}) as ydl:
             info = ydl.extract_info(url, download=False)
             nombre_prueba = ydl.prepare_filename(info)
     except Exception as e:
