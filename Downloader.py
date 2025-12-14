@@ -8,16 +8,93 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
+def clasificar_calidad(info):
+    formato = info.get("formats", [])
+    mejor = None
+    
+    for f in formato:
+        if f.get("vcodec") != "none":
+            if not mejor or (f.get("tbr", 0) or 0) > (mejor.get("tbr", 0) or 0):
+                mejor = f
+                
+    if not mejor:
+        return "Desconocido"
+    
+    anchura = mejor.get("width") or 0
+    altura = mejor.get("height") or 0
+
+    es_vertical = altura > anchura
+    tbr = mejor.get("tbr") or 0
+    
+    if es_vertical:
+        resolución_base_real = min(anchura, altura)
+    else:
+        resolución_base_real = max(anchura, altura)
+    
+    
+    if resolución_base_real >= 2160:
+        perfil = CALIDAD_DE_VIDEO[2160]
+    elif resolución_base_real >= 1440:
+        perfil = CALIDAD_DE_VIDEO[1440]
+    elif resolución_base_real >= 1080:
+        perfil = CALIDAD_DE_VIDEO[1080]
+    elif resolución_base_real >= 720:
+        perfil = CALIDAD_DE_VIDEO[720]
+    else:
+        perfil = CALIDAD_DE_VIDEO[480]
+
+    # Clasificación dinámica
+    if tbr >= perfil["excelente"]:
+        return "Excelente"
+    elif tbr >= perfil["buena"]:
+        return "Buena"
+    elif tbr >= perfil["regular"]:
+        return "Regular"
+    elif tbr >= perfil["mala"]:
+        return "Mala"
+    else:
+        return "Muy mala"
+      
+def imprimir_calidad_real(info):
+    formato = info.get("formats", [])
+
+    mejor = None
+    for f in formato:
+        if f.get("vcodec") != "none":
+            if not mejor or (f.get("tbr", 0) or 0) > (mejor.get("tbr", 0) or 0):
+                mejor = f
+
+    if not mejor:
+        print("No se encontró stream de video válido.")
+        return
+
+
+    width = mejor.get("width")
+    height = mejor.get("height")
+    vcodec = mejor.get("vcodec")
+    tbr = mejor.get("tbr") or 0
+    fps = mejor.get("fps")
+    fid = mejor.get("format_id")
+
+    print("=== CALIDAD REAL DETECTADA CON LA PLATAFORMA ===")
+    print(f"Resolución : {width} x {height}")
+    print(f"Códec      : {vcodec}")
+    print(f"Bitrate    : {tbr} kbps")
+    print(f"FPS        : {fps}")
+    print(f"Formato ID : {fid}")
+
+    if tbr and height:
+        if height >= 1080 and tbr < 500:
+            print("⚠️ Advertencia: 1080p con bitrate muy bajo (calidad pobre)")
+        elif height >= 720 and tbr < 1000:
+            print("⚠️ Advertencia: bitrate bajo para HD")
+
 def optar(tipoFormato, plataforma):
     match tipoFormato:
         case "mp4":
             if plataforma == "bilibili":
                 return {
-                    "format": (
-                        "bestvideo[vcodec^=hev1]+bestaudio/"
-                        "bestvideo[vcodec^=avc1]+bestaudio/"
-                        "best"
-                    ),
+                    "format": "bestvideo+bestaudio/best",
                     "postprocessors": [],
                     "merge": False
                 }
@@ -30,6 +107,7 @@ def optar(tipoFormato, plataforma):
                     "postprocessors": [],
                     "merge": False
                 }
+
 
         case "mp3":
             return {
@@ -44,8 +122,6 @@ def optar(tipoFormato, plataforma):
                 "merge": False
             }
 
-
-
 def descargar(ventana, url, formato, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
@@ -59,7 +135,6 @@ def descargar(ventana, url, formato, subtitulos):
     proceso_de_codificación = configuración["postprocessors"]
     merge_output = configuración["merge"]
     
-    mostrar_descarga()
     # ------------------------------------------
     # Verificar si el archivo ya existe antes de descargar
     archivo_existe = False
@@ -84,6 +159,7 @@ def descargar(ventana, url, formato, subtitulos):
             cerrar_seguro(ventanaProgreso)
             return
     else:
+        mostrar_descarga()
         if subtitulos:
             mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
         else:
@@ -94,6 +170,7 @@ def descargar(ventana, url, formato, subtitulos):
                 "format": formatoYDL,
                 "quiet": True,
                 "no_warnings": True,
+                "show_progress": False,
                 "progress_hooks": [hook_progreso],
                 "noplaylist": True,
                 "nooverwrites": True,
@@ -120,7 +197,10 @@ def descargar(ventana, url, formato, subtitulos):
         try:
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
-                mostrar_aviso(ventana, "Descarga completada con éxito.", colors["successfully"])
+                info = ydl.extract_info(url, download=True)  # ✅ ahora sí devuelve info
+                calidad = clasificar_calidad(info)
+                mostrar_aviso(ventana, f"Descarga completada exitosamente\n con {calidad} calidad", colors["successfully"])
+                imprimir_calidad_real(info)
         except DownloadError:
             print(f"\n Error")
         finally:

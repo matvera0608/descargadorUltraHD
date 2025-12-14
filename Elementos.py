@@ -15,6 +15,32 @@ colors = {
     "alert": "#f5bb0b"
 }
 
+CALIDAD_DE_VIDEO = {
+  2160: {"excelente": 15000,  "buena": 8000, "regular": 3000, "mala": 4000},
+  1440: {"excelente": 8000,   "buena": 5000, "regular": 3500, "mala": 2500},
+  1080: {"excelente": 4500,   "buena": 3000, "regular": 2000, "mala": 1300},
+  720:  {"excelente": 2500,   "buena": 1700, "regular": 1100, "mala": 800},
+  540:  {"excelente": 1200,   "buena": 800,  "regular": 500,  "mala": 350},
+  480:  {"excelente": 1000,   "buena": 650,  "regular": 400,  "mala": 250},
+}
+
+def obtener_calidad_video(height, tbr):
+  """Retorna la calidad del video basada en resolución y bitrate."""
+  if height not in CALIDAD_DE_VIDEO:
+    return "Desconocida"
+  
+  umbrales = CALIDAD_DE_VIDEO[height]
+  
+  for calidad, minimo_tbr in [("excelente", umbrales["excelente"]), 
+                 ("buena", umbrales["buena"]), 
+                 ("regular", umbrales["regular"])]:
+    if tbr >= minimo_tbr:
+      return calidad.capitalize()
+  
+  return "Mala"
+
+
+
 ventanaProgreso = None
 
 urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
