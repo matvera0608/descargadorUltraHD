@@ -4,7 +4,7 @@ import customtkinter as ctk
 
 directorio = os.path.dirname(__file__)
 ícono = os.path.join(directorio, "imágen", "descargador.ico")
-
+ícono_en_png = os.path.join(directorio, "imágen", "descargador.gif")
 
 # --- FUNCIÓN PARA CARGAR IMAGENES ---
 def cargar_imagen(ruta_subcarpeta_imagen, nombre_imagen, tamaño=(100, 100)):

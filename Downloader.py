@@ -8,10 +8,31 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
+def detectar_plataforma(link_de_archivo):
+    link_de_archivo = link_de_archivo.lower()
+
+    if "youtube.com" in link_de_archivo or "youtu.be" in link_de_archivo:
+        return "youtube"
+    if "bilibili.com" in link_de_archivo or "b23.tv" in link_de_archivo:
+        return "bilibili"
+    if "douyin.com" in link_de_archivo or "iesdouyin.com" in link_de_archivo:
+        return "douyin"
+    if "tiktok.com" in link_de_archivo:
+        return "tiktok"
+    if "instagram.com" in link_de_archivo or "instagr.am" in link_de_archivo:
+        return "instagram"
+    if "facebook.com" in link_de_archivo or "fb.watch" in link_de_archivo:
+        return "facebook"
+    if "twitter.com" in link_de_archivo or "x.com" in link_de_archivo:
+        return "twitter"
+
+    return "default"
+
 def clasificar_calidad(info, plataforma="default"):
     formato = info.get("formats", [])
     mejor = None
     
+
     for f in formato:
         if f.get("vcodec") != "none":
             if not mejor or (f.get("tbr", 0) or 0) > (mejor.get("tbr", 0) or 0):
@@ -20,12 +41,18 @@ def clasificar_calidad(info, plataforma="default"):
     if not mejor:
         return "Desconocido"
     
-    anchura = mejor.get("width") or 0
-    altura = mejor.get("height") or 0
-
-    es_vertical = altura > anchura
-    tbr = mejor.get("tbr") or 0
     
+    altura = mejor.get("height") or 0
+    tbr = mejor.get("tbr") or 0
+    fps = mejor.get("fps") or 30
+
+    if fps >= 50:
+        peso_fps = 1.08
+    elif fps >= 30:
+        peso_fps = 1.00
+    else:
+        peso_fps = 0.92
+
     
     resolución_base_real = altura
     
@@ -58,7 +85,8 @@ def clasificar_calidad(info, plataforma="default"):
             peso_codec = peso
             break
 
-    tbr_perceptual = tbr * peso_codec
+    tbr_perceptual = tbr * peso_codec * peso_fps #Ahora puse que considere el fps para que detecte la calidad real sin falsear mensajes
+
     
     perfil = perfil_plataforma.get(int(resultado_en_texto))
     
@@ -74,7 +102,7 @@ def clasificar_calidad(info, plataforma="default"):
     else:
         return "Muy mala"
     
-def imprimir_calidad_real(info):
+def imprimir_calidad_real(info, url):
     formato = info.get("formats", [])
 
     mejor = None
@@ -94,19 +122,16 @@ def imprimir_calidad_real(info):
     tbr = mejor.get("tbr") or 0
     fps = mejor.get("fps")
     fid = mejor.get("format_id")
+    
+    plataforma = detectar_plataforma(url)
 
     print("=== CALIDAD REAL DETECTADA CON LA PLATAFORMA ===")
+    print(f"Plataforma : {plataforma}")
     print(f"Resolución : {width} x {height}")
     print(f"Códec      : {vcodec}")
     print(f"Bitrate    : {tbr} kbps")
     print(f"FPS        : {fps}")
     print(f"Formato ID : {fid}")
-
-    if tbr and height:
-        if height >= 1080 and tbr < 500:
-            print("⚠️ Advertencia: 1080p con bitrate muy bajo (calidad pobre)")
-        elif height >= 720 and tbr < 1000:
-            print("⚠️ Advertencia: bitrate bajo para HD")
 
 def optar(tipoFormato, plataforma):
     match tipoFormato:
@@ -216,9 +241,10 @@ def descargar(ventana, url, formato, subtitulos):
             with YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
                 info = ydl.extract_info(url, download=True)  # ✅ ahora sí devuelve info
-                calidad = clasificar_calidad(info)
+                plataforma = detectar_plataforma(url)
+                calidad = clasificar_calidad(info, plataforma)
                 mostrar_aviso(ventana, f"Descarga completada exitosamente\n con {calidad} calidad", colors["successfully"])
-                imprimir_calidad_real(info)
+                imprimir_calidad_real(info, url)
         except DownloadError:
             print(f"\n Error")
         finally:

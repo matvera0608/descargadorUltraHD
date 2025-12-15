@@ -12,7 +12,7 @@ ctk.set_default_color_theme("blue")
 def habilitar(evento=None):
     try:
           entry_Link.configure(state="normal")
-          link_valor = entry_Link.get().strip()
+          link_valor = entry_Link.get().replace(" ", "").strip()
 
           # Si está vacío: deshabilitar todo
           if not link_valor:
@@ -24,10 +24,12 @@ def habilitar(evento=None):
           if urlHTTP.match(link_valor):
                chBox_subtitular.configure(state="normal")
                btnDescargar.configure(state="normal")
+               entry_Link.configure(text_color=colors["successfully"])
           else:
           # URL inválida → deshabilitar botones, pero NO borrar el texto
                chBox_subtitular.configure(state="disabled")
                btnDescargar.configure(state="disabled")
+               entry_Link.configure(text_color=colors["danger"])
             
           if evento and evento.type == "FocusOut":
                if not urlHTTP.match(link_valor):

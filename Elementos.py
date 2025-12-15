@@ -122,6 +122,9 @@ def limpiar_ansi(texto):
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
 def mostrar_descarga():
+  
+  icono_img = tk.PhotoImage(file=ícono_en_png)
+  
   global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
   
   fuente_letra = ("Arial", 15)
@@ -132,7 +135,14 @@ def mostrar_descarga():
   ventanaProgreso.geometry("600x100")
   ventanaProgreso.resizable(False, False)
   ventanaProgreso.configure(fg_color=colors["background"])
-  ventanaProgreso.iconbitmap(ícono)
+    # Cargar el ícono como PhotoImage
+
+
+  # Asignar el ícono a la ventana
+  ventanaProgreso.iconphoto(False, icono_img)
+
+  # Guardar referencia para que no se borre
+  ventanaProgreso.icono_img = icono_img
   
   ventanaProgreso.lift()
   ventanaProgreso.focus_force()
