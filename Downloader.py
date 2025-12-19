@@ -8,6 +8,50 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
+def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
+    return {
+        "outtmpl": plantilla,
+        "format": "bestaudio/best",
+        "quiet": True,
+        "no_warnings": True,
+        "show_progress": False,
+        "progress_hooks": [hook_progreso],
+        "noplaylist": True,
+        "nooverwrites": True,
+
+        # 🎧 MP3 SIEMPRE
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192",
+            }
+        ],
+    }
+
+def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
+    return {
+            "outtmpl": plantilla,
+            "format": "bestvideo+bestaudio/best",
+            "quiet": True,
+            "no_warnings": True,
+            "show_progress": False,
+            "progress_hooks": [hook_progreso],
+            "noplaylist": True,
+            "nooverwrites": True,
+
+            # 🔥 CLAVE DEL DESCARGADOR CONSISTENTE
+            "merge_output_format": "mp4",
+            "postprocessors": [
+                {
+                    "key": "FFmpegVideoConvertor",
+                    "preferedformat": "mp4",
+                }
+            ],
+        }
+
+
+
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
 
@@ -133,50 +177,18 @@ def imprimir_calidad_real(info, url):
     print(f"FPS        : {fps}")
     print(f"Formato ID : {fid}")
 
-def optar(tipoFormato, plataforma):
-    match tipoFormato:
-        case "mp4":
-            if plataforma == "bilibili":
-                return {
-                    "format": "bestvideo+bestaudio/best",
-                    "postprocessors": [],
-                    "merge": False
-                }
-            else:
-                return {
-                    "format": (
-                        "bestvideo+bestaudio/"
-                        "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best"
-                    ),
-                    "postprocessors": [],
-                    "merge": False
-                }
 
-        case "mp3":
-            return {
-                "format": "bestaudio/best",
-                "postprocessors": [
-                    {
-                        "key": "FFmpegExtractAudio",
-                        "preferredcodec": "mp3",
-                        "preferredquality": "192"
-                    }
-                ],
-                "merge": False
-            }
-
-def descargar(ventana, url, formato, subtitulos):
+def descargar(ventana, url, modo_descarga, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
         return
-
-    plantilla = os.path.join(destino, "%(title)s.mp4")
     
-    configuración = optar(formato, "bilibili" if es_de_bilibili else "otra") # Obtener configuración según formato y plataforma, Bilibili cambia constantemente de backend, por eso se detecta especialmente cuando descargo un stream de alta calidad.
-    formatoYDL = configuración["format"]
-    proceso_de_codificación = configuración["postprocessors"]
-    merge_output = configuración["merge"]
+    if modo_descarga == "audio":
+        plantilla = os.path.join(destino, "%(title)s.mp3")
+    else:
+        plantilla = os.path.join(destino, "%(title)s.mp4")
+
     
     # ------------------------------------------
     # Verificar si el archivo ya existe antes de descargar
@@ -207,19 +219,12 @@ def descargar(ventana, url, formato, subtitulos):
             mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
         else:
             mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
-
-    ydl_opts = {
-                "outtmpl": plantilla,
-                "format": formatoYDL,
-                "quiet": True,
-                "no_warnings": True,
-                "show_progress": False,
-                "progress_hooks": [hook_progreso],
-                "noplaylist": True,
-                "nooverwrites": True,
-                "postprocessors": proceso_de_codificación if merge_output else [],
-                }
-
+    
+    if modo_descarga == "audio":
+        ydl_opts = ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
+    else:
+        ydl_opts = ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
+    
     if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
         ydl_opts.update({
             "cookiefile": carpeta_destino_cookies,
@@ -239,11 +244,14 @@ def descargar(ventana, url, formato, subtitulos):
     def tarea():
         try:
             with YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+                
                 info = ydl.extract_info(url, download=True)  # ✅ ahora sí devuelve info
                 plataforma = detectar_plataforma(url)
                 calidad = clasificar_calidad(info, plataforma)
-                mostrar_aviso(ventana, f"Descarga completada exitosamente\n con {calidad} calidad", colors["successfully"])
+                if modo_descarga == "audio":
+                    mostrar_aviso(ventana, "Descarga de audio completada (MP3)", colors["successfully"])
+                else:
+                    mostrar_aviso(ventana, f"Descarga completada con {calidad} calidad", colors["successfully"])
                 imprimir_calidad_real(info, url)
         except DownloadError:
             print(f"\n Error")

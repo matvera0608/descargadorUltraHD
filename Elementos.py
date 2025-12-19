@@ -3,18 +3,6 @@ import customtkinter as ctk
 import re, os
 import tkinter as tk
 
-# Paleta personalizada (usa tus hex o nombres preferidos)
-colors = {
-    "background": "#242424",
-    "primary": "#2563eb",
-    "primary_hover": "#1d4ed8",
-    "accent": "#06b6d4",
-    "danger": "#ef4444",
-    "text": "#ffffff",
-    "successfully": "#12c23b",
-    "alert": "#f5bb0b"
-}
-
 CALIDAD_DE_VIDEO = {
     "youtube": {
         2160: {"excelente": 15000.0, "buena": 8000.0, "regular": 4000.0, "mala": 2000.0},
@@ -23,21 +11,17 @@ CALIDAD_DE_VIDEO = {
         720:  {"excelente": 2500.0, "buena": 1500.0, "regular": 900.0, "mala": 500.0},
         480:  {"excelente": 1200.6, "buena": 8500.0, "regular": 5300.0, "mala": 3300.0},
     },
-
     "bilibili": {
         1080: {"excelente": 1500.0, "buena": 1000.0, "regular": 700.0, "mala": 400.0},
         720:  {"excelente": 900.0,  "buena": 600.0,  "regular": 400.0, "mala": 250.0},
         540:  {"excelente": 700.0,  "buena": 450.0,  "regular": 300.0, "mala": 180.0},
         480:  {"excelente": 600.0,  "buena": 400.0,  "regular": 250.0, "mala": 150.0},
     },
-
     "tiktok": {
-        1080: {"excelente": 2000.0, "buena": 1200.0, "regular": 800.0, "mala": 400.0},
-        720:  {"excelente": 1200.0, "buena": 800.0,  "regular": 500.0, "mala": 250.0},
-        540:  {"excelente": 900.0,  "buena": 600.0,  "regular": 350.0, "mala": 200.0},
-        480:  {"excelente": 700.0,  "buena": 450.0,  "regular": 300.0, "mala": 150.0},
+        1080: {"excelente": 600, "buena": 350, "regular": 200, "mala": 150},
+        720:  {"excelente": 400, "buena": 250, "regular": 180, "mala": 120},
+        540:  {"excelente": 300, "buena": 200, "regular": 150, "mala": 100},
     },
-
     "douyin": {  # TikTok chino, similar pero un poco más agresivo
         1080: {"excelente": 1800.0, "buena": 1100.0, "regular": 700.0, "mala": 350.0},
         720:  {"excelente": 1000.0, "buena": 700.0,  "regular": 450.0, "mala": 250.0},
@@ -90,6 +74,32 @@ PESO_CODEC = {
     "hev1": 1.25,   # HEVC / H.265
     "hvc1": 1.25,
     "avc1": 1.00,   # H.264 base
+}
+
+TOLERANCIA_PLATAFORMA = {
+    "tiktok":     0.12,  # compresión muy agresiva
+    "douyin":     0.12,  # es el TikTok chino, misma compresión
+    "instagram":  0.10,  # reels muy comprimidos
+    "facebook":   0.10,  # similar a instagram, pero un poco más variable
+    "twitter":    0.09,  # X comprime fuerte pero no tanto como IG
+    "x":          0.09,  # alias
+    "bilibili":   0.06,  # buena calidad, pero no tan alta como YouTube
+    "youtube":    0.05,  # la más estable y generosa en bitrate
+    "default":    0.08   # punto medio para cualquier otra
+}
+
+
+
+# Paleta personalizada (usa tus hex o nombres preferidos)
+colors = {
+    "background": "#242424",
+    "primary": "#2563eb",
+    "primary_hover": "#1d4ed8",
+    "accent": "#06b6d4",
+    "danger": "#ef4444",
+    "text": "#ffffff",
+    "successfully": "#12c23b",
+    "alert": "#f5bb0b"
 }
 
 
