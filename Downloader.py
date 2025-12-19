@@ -51,7 +51,6 @@ def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
         }
 
 
-
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
 
@@ -184,10 +183,10 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     if not destino:
         return
     
-    if modo_descarga == "audio":
-        plantilla = os.path.join(destino, "%(title)s.mp3")
+    if modo_descarga == "mp3":
+        plantilla = os.path.join(destino, "%(title)s.%(ext)s")
     else:
-        plantilla = os.path.join(destino, "%(title)s.mp4")
+        plantilla = os.path.join(destino, "%(title)s.%(ext)s")
 
     
     # ------------------------------------------
@@ -220,7 +219,7 @@ def descargar(ventana, url, modo_descarga, subtitulos):
         else:
             mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
     
-    if modo_descarga == "audio":
+    if modo_descarga == "mp3":
         ydl_opts = ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
     else:
         ydl_opts = ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
@@ -244,11 +243,10 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     def tarea():
         try:
             with YoutubeDL(ydl_opts) as ydl:
-                
                 info = ydl.extract_info(url, download=True)  # ✅ ahora sí devuelve info
                 plataforma = detectar_plataforma(url)
                 calidad = clasificar_calidad(info, plataforma)
-                if modo_descarga == "audio":
+                if modo_descarga == "mp3":
                     mostrar_aviso(ventana, "Descarga de audio completada (MP3)", colors["successfully"])
                 else:
                     mostrar_aviso(ventana, f"Descarga completada con {calidad} calidad", colors["successfully"])
