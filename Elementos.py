@@ -11,17 +11,20 @@ CALIDAD_DE_VIDEO = {
         720:  {"excelente": 2500.0, "buena": 1500.0, "regular": 900.0, "mala": 500.0},
         480:  {"excelente": 1200.6, "buena": 8500.0, "regular": 5300.0, "mala": 3300.0},
     },
+
     "bilibili": {
         1080: {"excelente": 1500.0, "buena": 1000.0, "regular": 700.0, "mala": 400.0},
         720:  {"excelente": 900.0,  "buena": 600.0,  "regular": 400.0, "mala": 250.0},
         540:  {"excelente": 700.0,  "buena": 450.0,  "regular": 300.0, "mala": 180.0},
         480:  {"excelente": 600.0,  "buena": 400.0,  "regular": 250.0, "mala": 150.0},
     },
+
     "tiktok": {
         1080: {"excelente": 600, "buena": 350, "regular": 200, "mala": 150},
         720:  {"excelente": 400, "buena": 250, "regular": 180, "mala": 120},
         540:  {"excelente": 300, "buena": 200, "regular": 150, "mala": 100},
     },
+
     "douyin": {  # TikTok chino, similar pero un poco más agresivo
         1080: {"excelente": 1800.0, "buena": 1100.0, "regular": 700.0, "mala": 350.0},
         720:  {"excelente": 1000.0, "buena": 700.0,  "regular": 450.0, "mala": 250.0},
@@ -60,6 +63,7 @@ CALIDAD_DE_VIDEO = {
         720:  {"excelente": 4500.0, "buena": 3000.0, "regular": 2000.0, "mala": 1000.0},
         480:  {"excelente": 1500.0, "buena": 900.0,  "regular": 500.0,  "mala": 300.0},
     },
+    
     "default": {
         2160: {"excelente": 12000, "buena": 8000, "regular": 5000, "mala": 2500},
         1080: {"excelente": 3000, "buena": 2000, "regular": 1200, "mala": 600},

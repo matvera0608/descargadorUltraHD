@@ -1,5 +1,6 @@
 from tkinter import filedialog as diálogo
 import threading as subproceso
+import subprocess
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import os
@@ -8,52 +9,76 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
+
+#Me está tirando un problema con la función
 def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
     return {
         "outtmpl": plantilla,
         "format": "bestaudio/best",
+
         "quiet": True,
         "no_warnings": True,
-        "show_progress": False,
-        "progress_hooks": [hook_progreso],
         "noplaylist": True,
         "nooverwrites": True,
 
-        # 🎧 MP3 SIEMPRE
+        "progress_hooks": [hook_progreso],
+
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
                 "preferredcodec": "mp3",
-                "preferredquality": "192",
+                "preferredquality": "192"
             }
         ],
+
+        "ffmpeg_location": "ffmpeg"
     }
+
 
 def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
     return {
         "outtmpl": plantilla,
-        "format": "bestvideo[vcodec!=av01]+bestaudio[ext=m4a]/mp4",
+        "format": "bestvideo[vcodec!=av01]+bestaudio[ext=m4a]/best",
+        "merge_output_format": "mp4",
+
         "quiet": True,
         "no_warnings": True,
-        "show_progress": False,
-        "progress_hooks": [hook_progreso],
         "noplaylist": True,
         "nooverwrites": True,
 
-        "merge_output_format": "mp4",
+        "progress_hooks": [hook_progreso],
+
         "postprocessors": [
             {
-                "key": "FFmpegVideoRemuxer",
-                "preferedformat": "mp4",
-                "preferredcodec": "h264"
-            },
-            {
-                "key": "FFmpegAudioConvertor",
-                "preferedcodec": "aac"
+                "key": "FFmpegVideoConvertor",
+                "preferedformat": "mp4"
             }
         ],
+
         "ffmpeg_location": "ffmpeg"
     }
+
+def decodificar_video(ruta_entrada, ruta_salida=None):
+    if ruta_salida is None:
+        base, _ = os.path.splitext(ruta_entrada)
+        ruta_salida = base + "_h264.mp4"
+
+    comando = [
+        "ffmpeg",
+        "-y",
+        "-i", ruta_entrada,
+        "-c:v", "libx264",
+        "-profile:v", "high",
+        "-pix_fmt", "yuv420p",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-movflags", "+faststart",
+        ruta_salida
+    ]
+
+    subprocess.run(comando, check=True)
+    return ruta_salida
+
 
 
 def detectar_plataforma(link_de_archivo):
@@ -181,7 +206,6 @@ def imprimir_calidad_real(info, url):
     print(f"FPS        : {fps}")
     print(f"Formato ID : {fid}")
 
-
 def descargar(ventana, url, modo_descarga, subtitulos):
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
@@ -247,23 +271,18 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             
     def tarea():
         try:
+            if modo_descarga == "mp3":
+                ydl_opts = ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
+            else:
+                ydl_opts = ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
+
+            print(ydl_opts.get("postprocessors"))
+
             with YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)  # ✅ ahora sí devuelve info
-                plataforma = detectar_plataforma(url)
-                calidad = clasificar_calidad(info, plataforma)
-                if modo_descarga == "mp3":
-                    mostrar_aviso(ventana, "Descarga de audio completada (MP3)", colors["successfully"])
-                else:
-                    mostrar_aviso(ventana, f"Descarga completada con {calidad} calidad", colors["successfully"])
-                imprimir_calidad_real(info, url)
-        except DownloadError:
-            print(f"\n Error")
-        finally:
-            try:
-                if ventanaProgreso and ventanaProgreso.winfo_exists():
-                    ventanaProgreso.after(100, ventanaProgreso.destroy)
-                    # print("ventanaProgreso:", ventanaProgreso, "existe:", ventanaProgreso.winfo_exists() if ventanaProgreso else None)
-            except tk.TclError:
-                pass
+                info = ydl.extract_info(url, download=True)
+
+        except Exception as e:
+            print("ERROR:", e)
+
             
     subproceso.Thread(target=tarea, daemon=True).start()
