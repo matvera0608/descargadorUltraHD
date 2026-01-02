@@ -31,24 +31,29 @@ def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
 
 def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
     return {
-            "outtmpl": plantilla,
-            "format": "bestvideo+bestaudio/best",
-            "quiet": True,
-            "no_warnings": True,
-            "show_progress": False,
-            "progress_hooks": [hook_progreso],
-            "noplaylist": True,
-            "nooverwrites": True,
+        "outtmpl": plantilla,
+        "format": "bestvideo[vcodec!=av01]+bestaudio[ext=m4a]/mp4",
+        "quiet": True,
+        "no_warnings": True,
+        "show_progress": False,
+        "progress_hooks": [hook_progreso],
+        "noplaylist": True,
+        "nooverwrites": True,
 
-            # 🔥 CLAVE DEL DESCARGADOR CONSISTENTE
-            "merge_output_format": "mp4",
-            "postprocessors": [
-                {
-                    "key": "FFmpegVideoConvertor",
-                    "preferedformat": "mp4",
-                }
-            ],
-        }
+        "merge_output_format": "mp4",
+        "postprocessors": [
+            {
+                "key": "FFmpegVideoRemuxer",
+                "preferedformat": "mp4",
+                "preferredcodec": "h264"
+            },
+            {
+                "key": "FFmpegAudioConvertor",
+                "preferedcodec": "aac"
+            }
+        ],
+        "ffmpeg_location": "ffmpeg"
+    }
 
 
 def detectar_plataforma(link_de_archivo):
