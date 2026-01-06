@@ -4,6 +4,11 @@ carpeta_de_cookies = os.path.join(os.path.expanduser("~"), "Downloads")
 carpeta_destino_cookies = os.path.join(os.path.expanduser("~"), "AppData", "Roaming", "yt-dlp", "cookies.txt")
 
 def procesar_cookies():
+
+    if not os.path.exists(os.path.dirname(carpeta_destino_cookies)):
+        os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
+        print("📦 Carpeta de cookies creada en:", os.path.dirname(carpeta_destino_cookies))
+
     archivos_de_cookies = glob.glob(os.path.join(carpeta_de_cookies, "*.txt"))
     if not archivos_de_cookies:
         print("No se encontraron archivos de cookies en la carpeta de descargas.")
@@ -36,22 +41,22 @@ def procesar_cookies():
             mejor_puntaje = puntaje
             mejor_archivo = archivo
 
-    if not mejor_archivo:
-        print("⚠ No se encontró ninguna cookie válida.")
-        return
-
+    
     print(f"✅ Mejor cookie seleccionada: {os.path.basename(mejor_archivo)}")
     
+    
+    if not mejor_archivo:
+        print("⚠ No se encontró ninguna cookie válida.")
+        return False
+    
     try:
-        os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
-            
         if os.path.exists(carpeta_destino_cookies):
             os.remove(carpeta_destino_cookies)
 
         shutil.move(mejor_archivo, carpeta_destino_cookies)
         print(f"📦 Cookie movida a: {carpeta_destino_cookies}")
         print("🎉 Listo para usar BiliBili con login.")
+        return carpeta_destino_cookies
     except Exception as e:
         print(f"Error al procesar la cookie: {e}")
-        return
-    
+        return False

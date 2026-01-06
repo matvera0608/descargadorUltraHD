@@ -54,17 +54,21 @@ def descargar_subtítulos(ventana, url, destino):
     
         es_de_bilibili = "bilibili" in url.lower()
         if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
-            # procesar_cookies() if not os.path.exists(carpeta_destino_cookies) else None
-            base_opts.update({
-                "cookiefile": carpeta_destino_cookies,
-                "logger": None,
-                "quiet": True,
-                "no_warnings": True,
-                "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Referer": "https://www.bilibili.com/",
-                }
-            })            
+            ruta_cookie = procesar_cookies()
+            if ruta_cookie:  # ejecuta la función y asegura que la cookie esté lista
+                base_opts.update({
+                    "cookiefile": carpeta_destino_cookies,
+                    "logger": None,
+                    "quiet": True,
+                    "no_warnings": True,
+                    "http_headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "Referer": "https://www.bilibili.com/",
+                    }
+                })
+            else:
+                print("⚠ No se pudo preparar cookies para BiliBili, porque tuvo un problema.")
+
             with YoutubeDL({**base_opts, "skip_download": True}) as ydl:
                 info = ydl.extract_info(url, download=False)
                 

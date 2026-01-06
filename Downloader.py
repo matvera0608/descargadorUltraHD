@@ -1,10 +1,10 @@
 from tkinter import filedialog as diálogo
 import threading as subproceso
-import subprocess
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import os
 from Subtitling import procesar_subtítulos
+from Encoding import *
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
@@ -20,7 +20,6 @@ def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
         "no_warnings": True,
         "noplaylist": True,
         "nooverwrites": True,
-
         "progress_hooks": [hook_progreso],
 
         "postprocessors": [
@@ -30,10 +29,7 @@ def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
                 "preferredquality": "192"
             }
         ],
-
-        "ffmpeg_location": "ffmpeg"
     }
-
 
 def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
     return {
@@ -47,38 +43,7 @@ def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
         "nooverwrites": True,
 
         "progress_hooks": [hook_progreso],
-
-        "postprocessors": [
-            {
-                "key": "FFmpegVideoConvertor",
-                "preferedformat": "mp4"
-            }
-        ],
-
-        "ffmpeg_location": "ffmpeg"
     }
-
-def decodificar_video(ruta_entrada, ruta_salida=None):
-    if ruta_salida is None:
-        base, _ = os.path.splitext(ruta_entrada)
-        ruta_salida = base + "_h264.mp4"
-
-    comando = [
-        "ffmpeg",
-        "-y",
-        "-i", ruta_entrada,
-        "-c:v", "libx264",
-        "-profile:v", "high",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-movflags", "+faststart",
-        ruta_salida
-    ]
-
-    subprocess.run(comando, check=True)
-    return ruta_salida
-
 
 
 def detectar_plataforma(link_de_archivo):
@@ -252,16 +217,16 @@ def descargar(ventana, url, modo_descarga, subtitulos):
         ydl_opts = ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
     else:
         ydl_opts = ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
-    
-    if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
-        ydl_opts.update({
-            "cookiefile": carpeta_destino_cookies,
-            "http_headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-            "Referer": "https://www.bilibili.com/",
-                            },
-                        })
-
+        if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
+            ruta_cookie = procesar_cookies()
+            ydl_opts.update({
+                "cookiefile": ruta_cookie,  # ruta fija al archivo
+                "logger": None,
+                "http_headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "Referer": "https://www.bilibili.com/",
+                },
+            })
     if subtitulos:
         procesar_subtítulos(ventana, url, destino, ventanaProgreso)
 
@@ -276,10 +241,19 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             else:
                 ydl_opts = ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
 
-            print(ydl_opts.get("postprocessors"))
-
+            # 🔑 Primero descargar
             with YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
+                archivo_descargado = ydl.prepare_filename(info)
+
+            if modo_descarga != "mp3":
+                if necesitar_decodificación(info):
+                    archivo_final = decodificar_video(archivo_descargado)
+                    print("Video convertido a:", archivo_final)
+                else:
+                    print("✅ Video compatible, no se recodifica:", archivo_descargado)
+            else:
+                print("Audio descargado en:", archivo_descargado)
 
         except Exception as e:
             print("ERROR:", e)
