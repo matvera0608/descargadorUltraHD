@@ -5,7 +5,7 @@ from Elementos import *
 from yt_dlp_UPDATES import *
 
 
-def procesar_subtítulos(ventana, url, destino, progreso):
+def procesar_subtítulos(ventana, url, destino, ruta_cookie=None, progreso=None):
   try:
     descarga_exitosa = descargar_subtítulos(ventana, url, destino)
     if descarga_exitosa:
@@ -55,46 +55,40 @@ def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
             mostrar_aviso(ventana, "No hay subtítulos", colors["danger"])
             return False, None
         
-        idioma = next((i for i in idiomas if i.endswith("-orig")), idiomas[0]) #Cuál es la diferencia entre este y el otro?
+        # idioma = next((i for i in idiomas if i.endswith(("-orig", "-original", "-auto"))), idiomas[0])
         
-        idioma = [i for i in idiomas if i.endswith("-original") or i.endswith("-auto")][0] if any(i.endswith("-original") or i.endswith("-auto") for i in idiomas) else idiomas[0] #Si hay subtítulos originales o automáticos, se selecciona el primero de esos, de lo contrario se selecciona el primer idioma disponible. Pero lo más probable es que en YouTube aparezca como -orig.
+        idioma = idiomas[0]
         
-        
-        
-        
-        base_opts = {
+        opts = {
                 "logger": None,
                 "quiet": True,
                 "no_warnings": True,
                 "skip_download": True,
                 "writesubtitles": True,
                 "subtitlesformat": "srt",
+                "subtitlelangs": [idioma],
                 "writeautomaticsub": True,
-                "outtmpl": os.path.join(destino, "%(title)s.%(ext)s")
+                "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
+                "js_runtimes": ["node"] #Acá le puse el js_runtimes
                 }
         
-        if archivos_de_cookie:
-            base_opts.update({
-            "cookiefile": archivos_de_cookie
-            })
+
+        with YoutubeDL(opts) as ydl:
+            ydl.download([url])
+            
         
-        with YoutubeDL(base_opts) as ydl:
-            info = ydl.download([base_opts])
+        archivo_sub = glob.glob(os.path.join(destino, "*.srt"))
             
-            # Obtener nombre real generado
-            archivo_base = ydl.prepare_filename(info)
-            archivo_sub = archivo_base.rsplit(".", 1)[0] + f".{idioma}.srt"
-            
-        if os.path.exists(archivo_sub):
+        if archivo_sub:
             mostrar_aviso(ventana, f"Subtítulo guardado", colors["successfully"])
-            return True, None #Los Trues o Falses especifican verdadero o falso para los colores
+            return True
         else:
             mostrar_aviso(ventana, "No se generó archivo de subtítulos", colors["danger"])
-            return False, None
+            return False
         
     except Exception as e:
         print(f"Error: {e}")
-        return False, None
+        return False
     
 
 def limpiar_repeticiones(ruta_srt):

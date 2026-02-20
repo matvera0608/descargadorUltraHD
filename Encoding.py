@@ -22,7 +22,12 @@ def decodificar_video(ruta_entrada, ruta_salida=None):
     ruta_salida
     ]
 
-    subproceso.run(comando, check=True)
+    subproceso.run(
+        comando,
+        stdout=subproceso.DEVNULL,
+        stderr=subproceso.DEVNULL
+    )
+
 
     # 🔄 reemplazar original por el convertido
     os.replace(ruta_salida, ruta_entrada)
