@@ -21,88 +21,80 @@ def procesar_subtítulos(ventana, url, destino, progreso):
 
 
 #¿Igual este sirve para determinar los subtítulos disponibles?
-def obtener_subtítulos_disponibles(url): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
+def obtener_subtítulos_disponibles(url, archivos_de_cookie=None): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
     subt_ydl_opts = {
         "quiet": True,
-        "no_warnings": True,
-        "logger": None,
         "skip_download": True,
     }
+    
+    if archivos_de_cookie:
+        subt_ydl_opts.update({
+            "cookiefile": archivos_de_cookie
+        })
     try:
         with YoutubeDL(subt_ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
-            return list(subs.keys()) if subs else []
+        subs = {}
+        
+        for key in ["subtitles", "automatic_captions", "requested_subtitles"]:
+            if info.get(key):
+                subs.update(info[key])
+                
+        idiomas = [i for i in subs.keys() if i != "danmaku"] #Idiomas guarda una lista de idiomas disponibles, pero se excluye "danmaku" que es un aluvión de mensajes de BiliBili y en Nico Nico Ni.
+        return idiomas, info
     except Exception as e:
         print(f"Error al obtener subtítulos: {e}")
-        return []
+        return [], []
     
-def descargar_subtítulos(ventana, url, destino):
+def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
     try:
+        
+        idiomas, info = obtener_subtítulos_disponibles(url, archivos_de_cookie)
+        
+        if not idiomas:
+            mostrar_aviso(ventana, "No hay subtítulos", colors["danger"])
+            return False, None
+        
+        idioma = next((i for i in idiomas if i.endswith("-orig")), idiomas[0]) #Cuál es la diferencia entre este y el otro?
+        
+        idioma = [i for i in idiomas if i.endswith("-original") or i.endswith("-auto")][0] if any(i.endswith("-original") or i.endswith("-auto") for i in idiomas) else idiomas[0] #Si hay subtítulos originales o automáticos, se selecciona el primero de esos, de lo contrario se selecciona el primer idioma disponible. Pero lo más probable es que en YouTube aparezca como -orig.
+        
+        
+        
+        
         base_opts = {
                 "logger": None,
                 "quiet": True,
                 "no_warnings": True,
                 "skip_download": True,
                 "writesubtitles": True,
-                "writeautomaticsub": True,
                 "subtitlesformat": "srt",
                 "writeautomaticsub": True,
-                "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
-                "merge_output_format": "mp4",
+                "outtmpl": os.path.join(destino, "%(title)s.%(ext)s")
                 }
-    
-        es_de_bilibili = "bilibili" in url.lower()
-        if es_de_bilibili: #Este es para bilibili, porque la plataforma requiere cookies para descargar subtítulos.
-            ruta_cookie = procesar_cookies()
-            if ruta_cookie:  # ejecuta la función y asegura que la cookie esté lista
-                base_opts.update({
-                    "cookiefile": carpeta_destino_cookies,
-                    "logger": None,
-                    "quiet": True,
-                    "no_warnings": True,
-                    "http_headers": {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "Referer": "https://www.bilibili.com/",
-                    }
-                })
-            else:
-                print("⚠ No se pudo preparar cookies para BiliBili, porque tuvo un problema.")
-
-            with YoutubeDL({**base_opts, "skip_download": True}) as ydl:
-                info = ydl.extract_info(url, download=False)
-                
-            subs = info.get("subtitles") or info.get("automatic_captions") or info.get("requested_subtitles") or {}
-            idiomas = [i for i in subs.keys() if i != "danmaku"]
-            if not idiomas and "subtitles" in info:
-                mostrar_aviso(ventana, "Es necesario procesar tus cookies.", colors["alert"])
-                return None
-            elif not idiomas:
-                mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-                return None
-            
-            idioma_original = idiomas[0]
-        else:
-            idiomas = obtener_subtítulos_disponibles(url)
-            if not idiomas:
-                mostrar_aviso(ventana, "No hay subtítulos disponibles", colors["danger"])
-                return None
-            idioma_original = next((i for i in idiomas if i.endswith("-orig")), idiomas[0])   
-        base_opts.update({"subtitleslangs": [idioma_original]})
-        with YoutubeDL(base_opts) as ydl:
-            ydl.download([url])
-            
-        info = ydl.extract_info(url, download=False) 
-        archivo_sub = os.path.join(destino, f"{info['title']}.{idioma_original}.srt")
         
+        if archivos_de_cookie:
+            base_opts.update({
+            "cookiefile": archivos_de_cookie
+            })
+        
+        with YoutubeDL(base_opts) as ydl:
+            info = ydl.download([base_opts])
+            
+            # Obtener nombre real generado
+            archivo_base = ydl.prepare_filename(info)
+            archivo_sub = archivo_base.rsplit(".", 1)[0] + f".{idioma}.srt"
+            
         if os.path.exists(archivo_sub):
             mostrar_aviso(ventana, f"Subtítulo guardado", colors["successfully"])
+            return True, None #Los Trues o Falses especifican verdadero o falso para los colores
         else:
             mostrar_aviso(ventana, "No se generó archivo de subtítulos", colors["danger"])
-        return True
+            return False, None
+        
     except Exception as e:
         print(f"Error: {e}")
-        return False
+        return False, None
     
 
 def limpiar_repeticiones(ruta_srt):

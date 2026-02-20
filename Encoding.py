@@ -7,17 +7,19 @@ def decodificar_video(ruta_entrada, ruta_salida=None):
         ruta_salida = base + "_temp" + ext  # archivo temporal
 
     comando = [
-        "ffmpeg",
-        "-y",
-        "-i", ruta_entrada,
-        "-c:v", "libx264",
-        "-profile:v", "high",
-        "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
-        "-b:a", "192k",
-        "-movflags", "+faststart",
-        "-map_metadata", "-1",   # 🔥 elimina metadatos
-        ruta_salida
+    "ffmpeg",
+    "-y",
+    "-i", ruta_entrada,
+    "-map", "0:v:0",   # asegura que se incluya el primer stream de video
+    "-map", "0:a:0?",  # incluye el primer stream de audio si existe (el ? evita error si no hay audio)
+    "-c:v", "libx264",
+    "-profile:v", "high",
+    "-pix_fmt", "yuv420p",
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-movflags", "+faststart",
+    "-map_metadata", "-1",
+    ruta_salida
     ]
 
     subproceso.run(comando, check=True)
@@ -26,6 +28,8 @@ def decodificar_video(ruta_entrada, ruta_salida=None):
     os.replace(ruta_salida, ruta_entrada)
 
     return ruta_entrada
+
+
 
 #Esto verifica 2 veces antes de hacer la recodificación para poder ver videos.
 def necesitar_decodificación(info):

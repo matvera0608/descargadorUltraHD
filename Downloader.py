@@ -1,7 +1,6 @@
 from tkinter import filedialog as diálogo
-import threading as subproceso
+import threading as hilo
 from yt_dlp import YoutubeDL
-from yt_dlp.utils import DownloadError
 import os
 from Subtitling import procesar_subtítulos
 from Encoding import *
@@ -44,7 +43,6 @@ def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
 
         "progress_hooks": [hook_progreso],
     }
-
 
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
@@ -187,7 +185,12 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     # Verificar si el archivo ya existe antes de descargar
     archivo_existe = False
     try:
-        with YoutubeDL({"skip_download": True, "quiet": True, "logger": None, "no_warnings": True, "outtmpl": plantilla, "show_progress": False}) as ydl:
+        with YoutubeDL({"skip_download": True,
+                        "quiet": True, "logger": None,
+                        "no_warnings": True,
+                        "outtmpl": plantilla,
+                        "show_progress": False}) as ydl:
+            
             info = ydl.extract_info(url, download=False)
             nombre_prueba = ydl.prepare_filename(info)
     except Exception as e:
@@ -259,4 +262,4 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             print("ERROR:", e)
 
             
-    subproceso.Thread(target=tarea, daemon=True).start()
+    hilo.Thread(target=tarea, daemon=True).start()

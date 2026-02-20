@@ -8,7 +8,6 @@ from yt_dlp_UPDATES import *
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-
 def habilitar(evento=None):
     try:
           entry_Link.configure(state="normal")
@@ -84,6 +83,7 @@ entry_Link.bind("<KeyRelease>", habilitar)
 
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
+
 
 btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interfaz, entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get()),
                image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
