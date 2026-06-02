@@ -92,8 +92,6 @@ TOLERANCIA_PLATAFORMA = {
     "default":    0.08   # punto medio para cualquier otra
 }
 
-
-
 # Paleta personalizada (usa tus hex o nombres preferidos)
 colors = {
     "background": "#242424",
@@ -109,14 +107,13 @@ colors = {
 
 ventanaProgreso = None
 
+
 urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
 
 def cerrar_seguro(ventana):
-  try:
-    if ventana and ventana.winfo_exists():
-      ventana.destroy()
-  except tk.TclError:
-    pass
+  hook_progreso.activo = False
+  ventana.destroy()
+
 
 def mostrar_seguro(ventana):
   try:
@@ -125,9 +122,6 @@ def mostrar_seguro(ventana):
   except tk.TclError:
     pass
 
-def descarga_segura_resistente_a_fallos(widget, acción):
-  if widget.winfo_exists():
-    widget.after(0, acción)
 
 def limpiar_ansi(texto):
     """Elimina los códigos ANSI (colores de consola) del texto."""
@@ -135,11 +129,11 @@ def limpiar_ansi(texto):
         return texto
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
+
+
 def mostrar_descarga():
   
   icono_img = tk.PhotoImage(file=ícono_en_png)
-  
-  global barra, lbl_porcentaje, lbl_estado, ventanaProgreso
   
   fuente_letra = ("Arial", 15)
   
@@ -173,49 +167,62 @@ def mostrar_descarga():
   lbl_porcentaje.pack(pady=5)
   
   ventanaProgreso.grab_set()
+
+   # --- Inyección de widgets al hook ---
+  hook_progreso.activo = True
+  hook_progreso.ventanaProgreso = ventanaProgreso
+  hook_progreso.lbl_estado = lbl_estado
+  hook_progreso.barra = barra
+  hook_progreso.lbl_porcentaje = lbl_porcentaje
   
-  if not all([barra, lbl_porcentaje, lbl_estado, ventanaProgreso]):
-    print("⚠ La ventana de progreso no está inicializada.")
-    return
+# --- Manejo seguro de cierre ---
+  def on_close():
+      hook_progreso.activo = False
+      ventanaProgreso.destroy()
+
+  ventanaProgreso.protocol("WM_DELETE_WINDOW", on_close)
+
+
+
 
 # --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
 # durante la descarga para actualizar la interfaz de usuario
 def hook_progreso(d):
+  if not getattr(hook_progreso, "activo", True):
+    return
   try:
-    temp_file = d.get('filename')
-    velocidad = limpiar_ansi(d.get('_speed_str', 'N/A')) #Esto ayuda a mejorar la precisión de la velocidad con la que se descarga
+    velocidad = limpiar_ansi(d.get('_speed_str', 'N/A'))
     eta = limpiar_ansi(d.get('_eta_str', 'N/A'))
+    total = d.get('total_bytes') or d.get('total_bytes_estimate')
+    porcentaje = (d['downloaded_bytes'] / total) * 100 if total else 0
+    
     if d['status'] == 'downloading':
-      total = d.get('total_bytes') or d.get('total_bytes_estimate')
-      porcentaje = (d['downloaded_bytes'] / total) * 100 if total else 0
-      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}"))
-      if porcentaje >= 50:
-        descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text=f"Más de la mitad descargada | Velocidad: {velocidad}")) #Imprimimos la velocidad cuando está mayor que 50, porque es la mitad de 100
-      descarga_segura_resistente_a_fallos(barra, lambda: barra.set(porcentaje / 100))
-      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_porcentaje.configure(text=f"{porcentaje:.1f}%"))
+      if hasattr(hook_progreso, "lbl_estado") and hook_progreso.lbl_estado.winfo_exists():
+        hook_progreso.lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}")
+      if hasattr(hook_progreso, "barra"):
+        hook_progreso.barra.set(porcentaje / 100)
+      if hasattr(hook_progreso, "lbl_porcentaje"):
+        hook_progreso.lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
+
     elif d['status'] == 'finished':
-      descarga_segura_resistente_a_fallos(barra, lambda: barra.set(1))
-      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_porcentaje.configure(text="100%"))
-      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="✅ Descarga completada."))
-      if ventanaProgreso and ventanaProgreso.winfo_exists(): #Ahora ejecuta el cierre de la ventana de progreso cuando la descarga se completa o cancela
-        ventanaProgreso.after(1500, ventanaProgreso.destroy)
-        ventanaProgreso.attributes("-topmost", False)
+      if hasattr(hook_progreso, "barra") and hook_progreso.barra.winfo_exists(): #Controla la barra de progreso
+        hook_progreso.barra.set(1)
+      if hasattr(hook_progreso, "lbl_porcentaje") and hook_progreso.barra.winfo_exists(): #Calcula el porcentaje actual
+        hook_progreso.lbl_porcentaje.configure(text=f"100%")
+      if hasattr(hook_progreso, "lbl_estado") and hook_progreso.barra.winfo_exists():
+        hook_progreso.lbl_estado.configure(text="✅ Descarga completada.")
+      if getattr(hook_progreso, "ventanaProgreso", None):
+        hook_progreso.ventanaProgreso.after(2000, lambda: cerrar_seguro(hook_progreso.ventanaProgreso))
     else:
-      descarga_segura_resistente_a_fallos(lbl_estado, lambda: lbl_estado.configure(text="❌ Descarga fallida."))
-      if ventanaProgreso and ventanaProgreso.winfo_exists():
-        ventanaProgreso.after(1500, ventanaProgreso.destroy)
-        if temp_file and os.path.exists(temp_file) and temp_file.endswith('.part'):
-          try:
-            os.remove(temp_file)
-          except Exception as e:
-            print(f"No se pudo eliminar el archivo temporal: {e}")
+      if hasattr(hook_progreso, "lbl_estado"):
+        hook_progreso.lbl_estado.configure(text=f"Falló la descarga")
                       
   except Exception as e:
     print(f"Error en el hook de progreso: {e}")
-    try:
-      os.remove(temp_file)
-    except Exception as e:
-      print(f"No se pudo eliminar el archivo temporal: {e}")
+    # try:
+    #   os.remove(temp_file)
+    # except Exception as e:
+    #   print(f"No se pudo eliminar el archivo temporal: {e}")
 
 
 def mostrar_aviso(contenedor, texto, color=None, milisegundos=5000):

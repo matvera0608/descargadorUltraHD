@@ -20,8 +20,7 @@ def procesar_subtítulos(ventana, url, destino, ruta_cookie=None, progreso=None)
     return False
 
 
-#¿Igual este sirve para determinar los subtítulos disponibles?
-def obtener_subtítulos_disponibles(url, archivos_de_cookie=None): #Obtiene los idiomas de subtítulos disponibles para un video dado su URL pero no los descarga.
+def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
     subt_ydl_opts = {
         "quiet": True,
         "skip_download": True,
@@ -40,7 +39,7 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None): #Obtiene los 
             if info.get(key):
                 subs.update(info[key])
                 
-        idiomas = [i for i in subs.keys() if i != "danmaku"] #Idiomas guarda una lista de idiomas disponibles, pero se excluye "danmaku" que es un aluvión de mensajes de BiliBili y en Nico Nico Ni.
+        idiomas = [i for i in subs.keys() if i != "danmaku"] 
         return idiomas, info
     except Exception as e:
         print(f"Error al obtener subtítulos: {e}")
@@ -65,11 +64,11 @@ def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
                 "no_warnings": True,
                 "skip_download": True,
                 "writesubtitles": True,
-                "subtitlesformat": "srt",
-                "subtitlelangs": [idioma],
-                "writeautomaticsub": True,
                 "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
-                "js_runtimes": ["node"] #Acá le puse el js_runtimes
+                "subtitlesformat": "srt",
+                "subtitlelangs": ["es"],
+                "writeautomaticsub": True,
+                "js_runtimes": {"node": {}}
                 }
         
 

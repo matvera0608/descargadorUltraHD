@@ -10,17 +10,13 @@ from yt_dlp_UPDATES import *
 
 
 #Me está tirando un problema con la función
-def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
+def ydl_opts_descargar_audio_mp3():
     return {
-        "outtmpl": plantilla,
         "format": "bestaudio/best",
-
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "nooverwrites": True,
-        "progress_hooks": [hook_progreso],
-
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -30,19 +26,15 @@ def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
         ],
     }
 
-def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
+def ydl_opts_descargar_video_mp4():
     return {
-        "outtmpl": plantilla,
         "format": "bestvideo[vcodec!=av01]+bestaudio[ext=m4a]/best",
         "merge_output_format": "mp4",
-
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
         "nooverwrites": True,
-
-        "progress_hooks": [hook_progreso],
-    }
+        }
 
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
@@ -170,6 +162,7 @@ def imprimir_calidad_real(info, url):
     print(f"Formato ID : {fid}")
 
 def descargar(ventana, url, modo_descarga, subtitulos):
+
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
@@ -179,34 +172,44 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     
     
     ydl_opts = (
-        ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
+        ydl_opts_descargar_audio_mp3()
         if modo_descarga == "mp3"
-        else ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
+        else ydl_opts_descargar_video_mp4()
     )
-
+    
+    ydl_opts.update({
+        "nopart": True,
+        "outtmpl": plantilla,
+        "progress_hooks": [hook_progreso],
+        "js_runtimes": {"node": {}}  # habilita Node.js como runtime
+    })
+    
     ruta_cookie = None
     
     if es_de_bilibili:
         ruta_cookie = procesar_cookies()
         ydl_opts.update({
-            "cookiefile": ruta_cookie,
+            "cookiefile": ruta_cookie if ruta_cookie else None,
             "http_headers": {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                 "Referer": "https://www.bilibili.com/",
             },
         })
-            
+    
+    mostrar_descarga()
+    
+    
     def tarea():
         try:
-            with YoutubeDL(ydl_opts) as ydl:
+            with YoutubeDL(ydl_opts) as ydl: #type: ignore
                 info = ydl.extract_info(url, download=True)
                 archivo_final = ydl.prepare_filename(info)
                 
             if modo_descarga != "mp3" and necesitar_decodificación(info):
                 archivo_final = decodificar_video(archivo_final)
-                mostrar_aviso(ventana, "Video convertido a:", colors["danger"])
+                mostrar_aviso(ventana, "Video convertido a:", colors["successfully"])
             else:
-                mostrar_aviso("Audio descargado en:", archivo_final)
+                mostrar_aviso(ventana, "Audio descargado en:", archivo_final)
                 
             
             if subtitulos:
@@ -216,6 +219,6 @@ def descargar(ventana, url, modo_descarga, subtitulos):
                 mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
             
         except Exception as e:
-            print("ERROR:", e)
+            print("ERROR:", e) #Acá me tira la excepción, algunos elementos dicen que no están definidos.
 
     hilo.Thread(target=tarea, daemon=True).start()
