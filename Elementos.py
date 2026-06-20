@@ -126,12 +126,12 @@ def mostrar_seguro(ventana):
 def limpiar_ansi(texto):
     """Elimina los códigos ANSI (colores de consola) del texto."""
     if not texto:
-        return texto
+      return texto
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
 
 
-def mostrar_descarga():
+def mostrar_descarga(ventana):
   
   icono_img = tk.PhotoImage(file=ícono_en_png)
   
@@ -152,8 +152,6 @@ def mostrar_descarga():
   # Guardar referencia para que no se borre
   ventanaProgreso.icono_img = icono_img
   
-  ventanaProgreso.lift()
-  ventanaProgreso.focus_force()
   ventanaProgreso.attributes("-topmost", True)
   ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
   lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=fuente_letra)
@@ -166,8 +164,11 @@ def mostrar_descarga():
   lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=fuente_letra)
   lbl_porcentaje.pack(pady=5)
   
-  ventanaProgreso.grab_set()
-
+  #Acá le cambié para que la interfaz sea más flexible y menos frustrante para el usuario
+  ventanaProgreso.transient(ventana)
+  ventanaProgreso.lift()
+  ventanaProgreso.focus_force()
+  
    # --- Inyección de widgets al hook ---
   hook_progreso.activo = True
   hook_progreso.ventanaProgreso = ventanaProgreso
@@ -181,8 +182,8 @@ def mostrar_descarga():
       ventanaProgreso.destroy()
 
   ventanaProgreso.protocol("WM_DELETE_WINDOW", on_close)
-
-
+  
+  return ventanaProgreso
 
 
 # --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
@@ -212,7 +213,8 @@ def hook_progreso(d):
       if hasattr(hook_progreso, "lbl_estado") and hook_progreso.barra.winfo_exists():
         hook_progreso.lbl_estado.configure(text="✅ Descarga completada.")
       if getattr(hook_progreso, "ventanaProgreso", None):
-        hook_progreso.ventanaProgreso.after(2000, lambda: cerrar_seguro(hook_progreso.ventanaProgreso))
+        hook_progreso.ventanaProgreso.after(5000, lambda: cerrar_seguro(hook_progreso.ventanaProgreso))
+        
     else:
       if hasattr(hook_progreso, "lbl_estado"):
         hook_progreso.lbl_estado.configure(text=f"Falló la descarga")
