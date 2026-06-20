@@ -8,15 +8,25 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 
-
+BASE_YDL_OPTS = {
+    "quiet": True,
+    "no_warnings": True,
+    "noplaylist": True,
+    "retries": 10,
+    "fragment_retries": 10,
+    "skip_unavailable_fragments": True,
+    "concurrent_fragment_downloads": 1,
+}
 #Me está tirando un problema con la función
-def ydl_opts_descargar_audio_mp3():
-    return {
-        "format": "bestaudio/best",
-        "quiet": True,
-        "no_warnings": True,
-        "noplaylist": True,
-        "nooverwrites": True,
+def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
+    
+    opts = BASE_YDL_OPTS.copy()
+    
+    opts.update({
+        "outtmpl": plantilla,
+        "format": "bestvideo+bestaudio/best",
+        "progress_hooks": [hook_progreso],
+        "merge_output_format": "mp4",
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -24,17 +34,22 @@ def ydl_opts_descargar_audio_mp3():
                 "preferredquality": "192"
             }
         ],
-    }
+    })
+    
+    return opts
 
-def ydl_opts_descargar_video_mp4():
-    return {
-        "format": "bestvideo[vcodec!=av01]+bestaudio[ext=m4a]/best",
+def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
+    
+    opts = BASE_YDL_OPTS.copy()
+
+    opts.update({
+        "outtmpl": plantilla,
+        "format": "bestvideo+bestaudio/best",
+        "progress_hooks": [hook_progreso],
         "merge_output_format": "mp4",
-        "quiet": True,
-        "no_warnings": True,
-        "noplaylist": True,
-        "nooverwrites": True,
-        }
+    })
+    
+    return opts
 
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
@@ -172,9 +187,9 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     
     
     ydl_opts = (
-        ydl_opts_descargar_audio_mp3()
+        ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
         if modo_descarga == "mp3"
-        else ydl_opts_descargar_video_mp4()
+        else ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
     )
     
     ydl_opts.update({
@@ -196,7 +211,7 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             },
         })
     
-    mostrar_descarga()
+    mostrar_descarga(ventana)
     
     
     def tarea():
@@ -205,18 +220,21 @@ def descargar(ventana, url, modo_descarga, subtitulos):
                 info = ydl.extract_info(url, download=True)
                 archivo_final = ydl.prepare_filename(info)
                 
-            if modo_descarga != "mp3" and necesitar_decodificación(info):
+            if modo_descarga == "mp3":
+                mostrar_aviso(ventana, f"Audio descargado", colors["successfully"])
+                
+            if necesitar_decodificación(info):
                 archivo_final = decodificar_video(archivo_final)
-                mostrar_aviso(ventana, "Video convertido a:", colors["successfully"])
+                mostrar_aviso(ventana, "Video decodificado", colors["successfully"])
             else:
-                mostrar_aviso(ventana, "Audio descargado en:", archivo_final)
+                mostrar_aviso(ventana, f"Video descargado", colors["successfully"])
                 
             
-            if subtitulos:
-                procesar_subtítulos(ventana, url, destino, ruta_cookie)
-                mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
-            else:
-                mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
+            # if subtitulos:
+            #     procesar_subtítulos(ventana, url, destino, ruta_cookie)
+            #     mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
+            # else:
+            #     mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
             
         except Exception as e:
             print("ERROR:", e) #Acá me tira la excepción, algunos elementos dicen que no están definidos.

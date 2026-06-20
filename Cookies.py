@@ -4,7 +4,6 @@ carpeta_de_cookies = os.path.join(os.path.expanduser("~"), "Downloads")
 carpeta_destino_cookies = os.path.join(os.path.expanduser("~"), "AppData", "Roaming", "yt-dlp", "cookies.txt")
 
 def procesar_cookies():
-
     if not os.path.exists(os.path.dirname(carpeta_destino_cookies)):
         os.makedirs(os.path.dirname(carpeta_destino_cookies), exist_ok=True)
         print("📦 Carpeta de cookies creada en:", os.path.dirname(carpeta_destino_cookies))

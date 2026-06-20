@@ -10,8 +10,6 @@ def procesar_subtítulos(ventana, url, destino, ruta_cookie=None, progreso=None)
     descarga_exitosa = descargar_subtítulos(ventana, url, destino)
     if descarga_exitosa:
         mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
-    elif descarga_exitosa is None:
-        pass
     else:
         mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
   except Exception as e:
@@ -57,7 +55,8 @@ def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
         # idioma = next((i for i in idiomas if i.endswith(("-orig", "-original", "-auto"))), idiomas[0])
         
         idioma = idiomas[0]
-        
+       
+       
         opts = {
                 "logger": None,
                 "quiet": True,
@@ -66,9 +65,9 @@ def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
                 "writesubtitles": True,
                 "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
                 "subtitlesformat": "srt",
-                "subtitlelangs": ["es"],
+                "subtitleslangs": [idioma],
                 "writeautomaticsub": True,
-                "js_runtimes": {"node": {}}
+                "js_runtimes": ["node"]
                 }
         
 
