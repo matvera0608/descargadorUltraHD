@@ -21,7 +21,6 @@ BASE_YDL_OPTS = {
 
 
 def obtener_ruta_ffmpeg():
-    
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     
     ffmpeg_path = os.path.join(base_path, "ffmpeg.exe")
@@ -29,8 +28,11 @@ def obtener_ruta_ffmpeg():
     if os.path.exists(ffmpeg_path):
         return ffmpeg_path
 
-    if descargar_FFMPEG(ffmpeg_path):
-        return ffmpeg_path
+    resultado_descarga = descargar_FFMPEG()
+    
+    # Verificamos si devolvió una ruta válida o el ejecutable existe tras la descarga
+    if resultado_descarga and os.path.exists(resultado_descarga):
+        return resultado_descarga
     
     return None
     

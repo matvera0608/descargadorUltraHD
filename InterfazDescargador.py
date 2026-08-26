@@ -82,12 +82,6 @@ entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
 
-def actualizar_ytdlp_background():
-    asyncio.run(actualizar_ytdlp())
-
-def actualizar_python():
-    asyncio.run(actualizar_pip())
-
 imagenDescargar = cargar_imagen("imágen", "download.png")
 
 
@@ -96,9 +90,22 @@ btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interf
                hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
 
-threading.Thread(target = actualizar_ytdlp_background, daemon = True).start()
-threading.Thread(target = actualizar_python, daemon = True).start()
+##Esto está en InterfazDescargador.py
+
+def actualizar_ytdlp_background():
+         asyncio.run(actualizar_ytdlp())
+
+def actualizar_python():
+    asyncio.run(actualizar_pip())
+
+def preparar_sistema_con_FFMPEG():
+     obtener_ruta_ffmpeg()
 
 
-    
-interfaz.mainloop()
+if __name__ == "__main__":
+     threading.Thread(target = actualizar_ytdlp_background, daemon = True).start()
+     threading.Thread(target = actualizar_python, daemon = True).start()
+     threading.Thread(target = preparar_sistema_con_FFMPEG, daemon = True).start() #Este es el que se encarga de prepara el sistema antes de iniciar cuando está descargando el FFMPEG
+
+     
+     interfaz.mainloop()

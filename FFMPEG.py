@@ -1,44 +1,67 @@
-import urllib.request, glob, os, zipfile, shutil
+import urllib.request, glob, os, sys, zipfile, shutil
 
 
-def descargar_FFMPEG(destino="ffmpeg.exe"):
-     if os.path.exists(destino):
-          print("✅ FFmpeg ya se encuentra disponible.")
-          return True
+def descargar_FFMPEG(callback_progreso=None, callback_estado=None):
+     if getattr(sys, 'frozen', False):
+          base_path = os.path.dirname(sys.executable)
+     else:
+          base_path = os.path.dirname(os.path.abspath(__file__))
+
+     carpeta_ffmpeg = os.path.join(base_path, "ffmpeg")
+     ruta_exe = os.path.join(carpeta_ffmpeg, "ffmpeg.exe")
+
+     if os.path.exists(ruta_exe):
+          return ruta_exe
+
+     os.makedirs(carpeta_ffmpeg, exist_ok=True)
 
      url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
-     zip_name = "ffmpeg.zip"
-     temp_dir = "ffmpeg_temp"
+     zip_name = os.path.join(base_path, "ffmpeg.zip")
+     temp_dir = os.path.join(base_path, "ffmpeg_temp")
+
+     def reportar_avance(bloques_descargados, tamaño_bloque, total_bytes):
+          if total_bytes > 0:
+               porcentaje = min(int(bloques_descargados * tamaño_bloque * 100 / total_bytes), 100)
+          if callback_progreso:
+               callback_progreso(porcentaje)
 
      try:
-          print("⏳ Descargando FFmpeg automáticamente (esto puede tardar unos segundos)...")
-          urllib.request.urlretrieve(url, zip_name)
+          if callback_estado:
+               callback_estado("✨ Preparando todo para tus descargas...")
+          
+          urllib.request.urlretrieve(url, zip_name, reporthook=reportar_avance)
 
-          print("📦 Descomprimiendo archivos...")
+          if callback_estado:
+               callback_estado("📦 Configurando componentes necesarios...")
+
           with zipfile.ZipFile(zip_name, "r") as zip_ref:
                zip_ref.extractall(temp_dir)
 
-          # Buscamos de forma inteligente el ffmpeg.exe dentro de la carpeta extraída
-          # sin importar el nombre exacto de la versión que descargó la web.
-          ruta_encontrada = glob.glob(os.path.join(temp_dir, "**", "ffmpeg.exe"), recursive=True) ##¿Qué almacena ruta_encontrada y que tipo de dato es?
+          ruta_encontrada = glob.glob(os.path.join(temp_dir, "**", "ffmpeg.exe"), recursive=True)
 
           if ruta_encontrada:
-               os.rename(ruta_encontrada[0], destino) 
-               print("🚀 ¡FFmpeg se configuró y quedó listo con éxito!")
+               shutil.move(ruta_encontrada[0], ruta_exe)
+               if callback_estado:
+                    callback_estado("🚀 ¡Todo listo para arrancar!")
                exito = True
           else:
-               print("⚠ No se pudo encontrar el binario de FFmpeg dentro del archivo descargado.")
                exito = False
 
      except Exception as e:
-          print(f"❌ Ocurrió un error al descargar FFmpeg: {e}")
+          print(f"La descarga se interrumpió o falló: {e}")
           exito = False
-
-     # Limpieza de archivos temporales sobrantes
-     if os.path.exists(zip_name):
-          os.remove(zip_name)
-
-     if os.path.exists(temp_dir):
-          # Borra la carpeta temporal y su contenido de forma limpia
-          shutil.rmtree(temp_dir, ignore_errors=True)
-     return exito
+     
+     finally:
+          if os.path.exists(zip_name):
+               try:
+                    os.remove(zip_name)
+               except:
+                    pass
+               
+          if os.path.exists(temp_dir):
+               try:
+                  shutil.rmtree(temp_dir, ignore_errors=True)  
+               except:
+                    pass
+               
+     return ruta_exe if exito else "ffmpeg"
