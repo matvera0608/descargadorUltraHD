@@ -7,6 +7,7 @@ from Encoding import *
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
+from FFMPEG import descargar_FFMPEG
 
 BASE_YDL_OPTS = {
     "quiet": True,
@@ -17,7 +18,24 @@ BASE_YDL_OPTS = {
     "skip_unavailable_fragments": True,
     "concurrent_fragment_downloads": 1,
 }
-#Me está tirando un problema con la función
+
+
+def obtener_ruta_ffmpeg():
+    
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    
+    ffmpeg_path = os.path.join(base_path, "ffmpeg.exe")
+    
+    if os.path.exists(ffmpeg_path):
+        return ffmpeg_path
+
+    if descargar_FFMPEG(ffmpeg_path):
+        return ffmpeg_path
+    
+    return None
+    
+
+
 def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
     
     opts = BASE_YDL_OPTS.copy()
@@ -185,6 +203,7 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     
     plantilla = os.path.join(destino, "%(title)s.%(ext)s")
     
+    ruta_FFMPEG = obtener_ruta_ffmpeg()
     
     ydl_opts = (
         ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
@@ -192,13 +211,18 @@ def descargar(ventana, url, modo_descarga, subtitulos):
         else ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
     )
     
+    ##Si tengo así el diccionario ydl_opts arriba del if donde verifica la ruta del FFMPEG, ¿Tirará algún error posible a la hora de ejecutar?
     ydl_opts.update({
         "nopart": True,
         "outtmpl": plantilla,
         "progress_hooks": [hook_progreso],
-        "js_runtimes": {"node": {}}  # habilita Node.js como runtime
+        "js_runtimes": {"node": {}}, 
+        
     })
-    
+    if ruta_FFMPEG:
+        ydl_opts["ffmpeg_location"] = ruta_FFMPEG
+        
+
     ruta_cookie = None
     
     if es_de_bilibili:

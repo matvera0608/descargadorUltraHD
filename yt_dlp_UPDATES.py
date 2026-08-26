@@ -1,7 +1,14 @@
 import asyncio
 import sys
-import datetime
+import datetime, importlib.util
 from importlib.metadata import version, PackageNotFoundError
+
+def paquete_instalado(paquete):
+    try:
+        version_actual = version(paquete)
+        return True, version_actual
+    except PackageNotFoundError:
+        return False, None
 
 def registrar_version(paquete, archivo_log="paquetes_log.txt"):
     try:
@@ -17,29 +24,71 @@ def registrar_version(paquete, archivo_log="paquetes_log.txt"):
 
     print(f"📜 Registro guardado en {archivo_log}")
 
+### FUNCIONES ASÍNCRONAS
+
+async def comprobar_Pillow():
+    existe, ver = paquete_instalado("Pillow")
+    if existe:
+        print(f"✅ Pillow está instalado (versión {ver})")
+        return existe
+    else:
+        print("❌ Pillow no está instalado")
+        ok = await instalar_paquete("Pillow")
+        return ok
+    
+
+async def comprobar_pip():
+    existe, ver = paquete_instalado("pip")
+    if existe:
+        print(f"✅ pip está instalado (versión {ver})")
+        return existe
+    else:
+        print("❌ pip no está instalado")
+        ok = await instalar_paquete("pip")
+        return ok
+
+
 async def desinstalar_paquete(paquete):
     proc = await asyncio.create_subprocess_exec(
         sys.executable, "-m", "pip", "uninstall", "-y", paquete,
         stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL
+        stderr=asyncio.subprocess.PIPE
     )
-    await proc.wait()
-    print(f"⛔ {paquete} desinstalado por error en instalación.")
+    stdout, stderr = await proc.communicate()
+
+    if proc.returncode == 0:
+        print(f"⛔ {paquete} desinstalado correctamente.")
+        return True
+
+    print(f"⚠ Error al desinstalar {paquete}.")
+    if stderr:
+        print(stderr.decode(errors="replace"))
+
+    return False
     
 async def instalar_paquete(paquete):
     proc = await asyncio.create_subprocess_exec(
         sys.executable, "-m", "pip", "install", "-U", paquete,
         stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL
+        stderr=asyncio.subprocess.PIPE
     )
-    await proc.wait()
-    print(f"✅ {paquete} reinstalado correctamente.")
+    stdout, stderr = await proc.communicate()
+
+    if proc.returncode == 0:
+        print(f"✅ {paquete} instalado correctamente.")
+        return True
+
+    print(f"⚠ Error al instalar {paquete}.")
+    if stderr:
+        print(stderr.decode(errors="replace"))
+
+    return False
 
 async def actualizar_ctk():
     proc = await asyncio.create_subprocess_exec(
         sys.executable, "-m", "pip", "install", "--upgrade", "customtkinter",
         stdout=asyncio.subprocess.DEVNULL, 
-        stderr=asyncio.subprocess.DEVNULL
+        stderr=asyncio.subprocess.PIPE
     )
     await proc.wait()
     
@@ -50,28 +99,64 @@ async def actualizar_ctk():
     else:
         print("✅ CustomTkinter actualizado correctamente.")
 
+
+    await proc.wait()
+
+    return proc.returncode == 0
+
+
 async def actualizar_ytdlp():
     proc = await asyncio.create_subprocess_exec(
-        sys.executable, "-m", "pip", "install", "-U", "yt-dlp",
+        sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp",
         stdout=asyncio.subprocess.DEVNULL,
-        stderr=asyncio.subprocess.DEVNULL
+        stderr=asyncio.subprocess.PIPE
     )
-    await proc.wait()
+
+    _, stderr = await proc.communicate()
 
     if proc.returncode != 0:
         print("⚠ Error al actualizar yt-dlp. Intentando reinstalación limpia...")
         await desinstalar_paquete("yt-dlp")
         await instalar_paquete("yt-dlp")
-    else:
-        print("✅ yt-dlp actualizado correctamente.")
+        return False
 
-async def main():
-    await asyncio.gather(actualizar_ctk(), actualizar_ytdlp())
+    print("✅ yt-dlp actualizado correctamente.")
+    return True
+
+async def actualizar_pip():
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable, "-m", "pip", "install", "--upgrade", "pip",
+        stdout=asyncio.subprocess.DEVNULL,
+        stderr=asyncio.subprocess.PIPE
+    )
+    _, stderr = await proc.communicate()
+
+    if proc.returncode != 0:
+        print("⚠ Error al actualizar pip.")
+        if stderr:
+            print(stderr.decode(errors="replace"))
+        return False
+
+    print("✅ pip actualizado correctamente.")
+    return True
     
+    
+async def main():
+    
+
+    await comprobar_Pillow()
+    await comprobar_pip()
+    
+    await actualizar_pip()
+    await actualizar_ctk()
+    await actualizar_ytdlp()
+
+
+
 if __name__ == "__main__":
+    asyncio.run(main())
+    
     try:
         print("Versión actual de yt-dlp:", version("yt-dlp"))
-    except Exception:
-        print("⚠ yt-dlp no está instalado, instalando...")
-    asyncio.run(main())
-    print("🎉 Actualización completada sin salida cargada.")
+    except PackageNotFoundError:
+        print("⚠ yt-dlp todavía no está instalado.")

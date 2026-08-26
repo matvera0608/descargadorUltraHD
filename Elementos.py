@@ -130,6 +130,7 @@ def limpiar_ansi(texto):
     return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
 
+
 def mostrar_descarga(ventana):
   
   icono_img = tk.PhotoImage(file=ícono_en_png)
