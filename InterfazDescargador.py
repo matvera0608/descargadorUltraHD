@@ -4,6 +4,7 @@ from Widgets import *
 from ImagenesImportadas import *
 from Elementos import *
 from yt_dlp_UPDATES import *
+from FFMPEG import limpiar_basura
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -42,6 +43,14 @@ interfaz.title("aTube Ramiro")
 interfaz.geometry("500x500")
 interfaz.iconbitmap(ícono)
 
+def cerrar_app(evento=None):
+     try:
+          limpiar_basura()
+     except Exception:
+          pass
+
+     interfaz.destroy()
+
 # Crear la barra de menú con tk.Menu
 barra_menu = crearMenú(interfaz)
 interfaz.config(menu=barra_menu)
@@ -57,7 +66,7 @@ menu_ayuda = crearMenú(barra_menu)
 menu_ayuda.add_command(label="Manual", command=lambda: print("Mostrar manual"))
 menu_ayuda.add_command(label="Métodos abreviados", command=lambda: print("Mostrar atajos"))
 menu_ayuda.add_separator()
-menu_ayuda.add_command(label="Salir", command=interfaz.quit)
+menu_ayuda.add_command(label="Salir", command=cerrar_app)
 barra_menu.add_cascade(label="Ayuda", menu=menu_ayuda)
 
 
@@ -93,7 +102,7 @@ btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
 ##Esto está en InterfazDescargador.py
 
 def actualizar_ytdlp_background():
-         asyncio.run(actualizar_ytdlp())
+     asyncio.run(actualizar_ytdlp())
 
 def actualizar_python():
     asyncio.run(actualizar_pip())
@@ -102,10 +111,14 @@ def preparar_sistema_con_FFMPEG():
      obtener_ruta_ffmpeg()
 
 
+interfaz.protocol("WM_DELETE_WINDOW", cerrar_app)
+
 if __name__ == "__main__":
+     
      threading.Thread(target = actualizar_ytdlp_background, daemon = True).start()
      threading.Thread(target = actualizar_python, daemon = True).start()
      threading.Thread(target = preparar_sistema_con_FFMPEG, daemon = True).start() #Este es el que se encarga de prepara el sistema antes de iniciar cuando está descargando el FFMPEG
 
+     limpiar_basura()
      
      interfaz.mainloop()

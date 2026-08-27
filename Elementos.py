@@ -1,4 +1,5 @@
 from ImagenesImportadas import *
+from FFMPEG import descargar_FFMPEG
 import customtkinter as ctk
 import re, os
 import tkinter as tk
@@ -124,19 +125,49 @@ def mostrar_seguro(ventana):
 
 
 def limpiar_ansi(texto):
-    """Elimina los códigos ANSI (colores de consola) del texto."""
-    if not texto:
-      return texto
-    return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
+  """Elimina los códigos ANSI (colores de consola) del texto."""
+  if not texto:
+    return texto
+  return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
+
+
+def mostrar_descarga_FFMPEG(ventana):
+  
+  barra = ctk.CTkProgressBar(ventana, width=250)
+  barra.pack(pady=10)
+  barra.set(0)
+
+  fuente_letra = ("Arial", 15)
+
+  lbl_porcentaje = ctk.CTkLabel(ventana, text="0%", font=fuente_letra)
+  lbl_porcentaje.pack(pady=5)
+  
+  lbl_estado = ctk.CTkLabel(ventana, text="Preparando FFmpeg...", font=fuente_letra)
+  lbl_estado.pack(pady=2)
+  
+  def actualizar_progreso(valor):
+    # if ventana is None:
+    #   return
+    ventana.after(0, lambda: barra.set(valor/100), lbl_porcentaje.configure(text=f"{valor}%"))
+         
+  def actualizar_estado(texto):
+    # if ventana is None:
+    #   return
+    ventana.after(0, lambda: lbl_estado.configure(text=texto))
+    
+    
+    
+  return actualizar_progreso, actualizar_estado
+
 
 
 
 def mostrar_descarga(ventana):
-  
+
   icono_img = tk.PhotoImage(file=ícono_en_png)
-  
+
   fuente_letra = ("Arial", 15)
-  
+
   # --- Ventana de progreso ---
   ventanaProgreso = ctk.CTkToplevel()
   ventanaProgreso.title("En proceso")
@@ -150,8 +181,8 @@ def mostrar_descarga(ventana):
   ventanaProgreso.iconphoto(False, icono_img)
 
   # Guardar referencia para que no se borre
-  ventanaProgreso.icono_img = icono_img
-  
+  ventanaProgreso.icono_img = icono_img #type: ignore
+
   ventanaProgreso.attributes("-topmost", True)
   ventanaProgreso.after(100, lambda: ventanaProgreso.attributes("-topmost", False))
   lbl_estado = ctk.CTkLabel(ventanaProgreso, text="Descargando video...", font=fuente_letra)
@@ -163,20 +194,20 @@ def mostrar_descarga(ventana):
 
   lbl_porcentaje = ctk.CTkLabel(ventanaProgreso, text="0%", font=fuente_letra)
   lbl_porcentaje.pack(pady=5)
-  
+
   #Acá le cambié para que la interfaz sea más flexible y menos frustrante para el usuario
   ventanaProgreso.transient(ventana)
   ventanaProgreso.lift()
   ventanaProgreso.focus_force()
-  
-   # --- Inyección de widgets al hook ---
+
+  # --- Inyección de widgets al hook ---
   hook_progreso.activo = True
   hook_progreso.ventanaProgreso = ventanaProgreso
   hook_progreso.lbl_estado = lbl_estado
   hook_progreso.barra = barra
   hook_progreso.lbl_porcentaje = lbl_porcentaje
-  
-# --- Manejo seguro de cierre ---
+
+  # --- Manejo seguro de cierre ---
   def on_close():
       hook_progreso.activo = False
       ventanaProgreso.destroy()

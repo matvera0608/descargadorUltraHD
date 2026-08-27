@@ -20,7 +20,7 @@ BASE_YDL_OPTS = {
 }
 
 
-def obtener_ruta_ffmpeg():
+def obtener_ruta_ffmpeg(ventana=None):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     
     ffmpeg_path = os.path.join(base_path, "ffmpeg.exe")
@@ -28,15 +28,10 @@ def obtener_ruta_ffmpeg():
     if os.path.exists(ffmpeg_path):
         return ffmpeg_path
 
-    resultado_descarga = descargar_FFMPEG()
+    actualizar_progreso, actualizar_estado = mostrar_descarga_FFMPEG(ventana)
     
-    # Verificamos si devolvió una ruta válida o el ejecutable existe tras la descarga
-    if resultado_descarga and os.path.exists(resultado_descarga):
-        return resultado_descarga
+    return descargar_FFMPEG(progreso=actualizar_progreso, estado=actualizar_estado)
     
-    return None
-    
-
 
 def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
     
@@ -205,7 +200,7 @@ def descargar(ventana, url, modo_descarga, subtitulos):
     
     plantilla = os.path.join(destino, "%(title)s.%(ext)s")
     
-    ruta_FFMPEG = obtener_ruta_ffmpeg()
+    ruta_FFMPEG = obtener_ruta_ffmpeg(ventana)
     
     ydl_opts = (
         ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
