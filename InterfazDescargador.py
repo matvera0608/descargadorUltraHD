@@ -108,7 +108,7 @@ def actualizar_python():
     asyncio.run(actualizar_pip())
 
 def preparar_sistema_con_FFMPEG():
-     obtener_ruta_ffmpeg()
+     obtener_ruta_ffmpeg(interfaz)
 
 
 interfaz.protocol("WM_DELETE_WINDOW", cerrar_app)

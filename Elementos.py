@@ -146,13 +146,18 @@ def mostrar_descarga_FFMPEG(ventana):
   lbl_estado.pack(pady=2)
   
   def actualizar_progreso(valor):
-    # if ventana is None:
-    #   return
-    ventana.after(0, lambda: barra.set(valor/100), lbl_porcentaje.configure(text=f"{valor}%"))
+    if ventana is None:
+      return
+    
+    def actualizar():
+      barra.set(valor/100)
+      lbl_porcentaje.configure(text=f"{valor}%")
+    
+    ventana.after(0, actualizar)
          
   def actualizar_estado(texto):
-    # if ventana is None:
-    #   return
+    if ventana is None:
+      return
     ventana.after(0, lambda: lbl_estado.configure(text=texto))
     
     
