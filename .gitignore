@@ -2,3 +2,9 @@
 __pycache__/ 
 *.pyc 
 .venv/ 
+
+# Archivos personales de trabajo
+videos a descargar.txt
+
+# FFmpeg
+/ffmpeg/
