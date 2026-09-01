@@ -281,6 +281,58 @@ def mostrar_descarga(ventana):
 
 ### FUNCIONES AUXILIARES PARA EL HOOK DE LA DESCARGA
 
+def formatear_eta(ETA):
+  if ETA in ("N/A", "Unknown", None):
+    return ""
+
+  if isinstance(ETA, str) and ":" in ETA:
+    partes = ETA.split(":")
+
+    if len(partes) == 2:
+      minutos, segundos = map(int, partes)
+      eta_en_segundos = (minutos * 60) + segundos
+      
+    elif len(partes) == 3:
+      horas, minutos, segundos = map(int, partes)
+      eta_en_segundos = (horas * 3600) + (minutos * 60) + segundos
+  else:
+    eta_en_segundos = int(ETA)
+      
+  
+  if eta_en_segundos < 60:
+    return f"{eta_en_segundos} segundo{'s' if eta_en_segundos != 1 else ''}"
+
+  elif eta_en_segundos < 3600:
+    minutos = eta_en_segundos // 60
+    segundos = eta_en_segundos % 60
+
+    if segundos == 0:
+        return f"{minutos} minuto{'s' if minutos != 1 else ''}"
+
+    return (
+      f"{minutos} minuto{'s' if minutos != 1 else ''} "
+      f"y {segundos} segundo{'s' if segundos != 1 else ''}"
+    )
+
+  else:
+      horas = eta_en_segundos // 3600
+      minutos = (eta_en_segundos % 3600) // 60
+      segundos = eta_en_segundos % 60
+
+      if minutos == 0 and segundos == 0:
+        return f"{horas} hora{'s' if horas != 1 else ''}"
+
+      if segundos == 0:
+        return (
+          f"{horas} hora{'s' if horas != 1 else ''} "
+          f"y {minutos} minuto{'s' if minutos != 1 else ''}"
+        )
+
+  return (f"{horas} hora{'s' if horas != 1 else ''}, "
+          f"{minutos} minuto{'s' if minutos != 1 else ''} "
+          f"y {segundos} segundo{'s' if segundos != 1 else ''}"
+          )
+
 def actualizar_interfaz_progreso(ventanaProgreso, lbl_estado, barra, lbl_porcentaje, velocidad, eta, porcentaje):
        
     ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
@@ -292,14 +344,22 @@ def actualizar_interfaz_progreso(ventanaProgreso, lbl_estado, barra, lbl_porcent
         try:
             if not ventanaProgreso.winfo_exists():
               return
-            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta} segundos")
+            
+            eta_formateado = formatear_eta(eta)
+            
+            if eta_formateado:
+              texto = f"Velocidad: {velocidad} | ETA: {eta_formateado}"
+            else:
+              texto = f"Velocidad: {velocidad}"
+            
+            lbl_estado.configure(text=texto)
 
             barra.set(porcentaje / 100)
 
             lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
 
         except tk.TclError:
-            pass
+          pass
 
     ventanaProgreso.after(0, actualizar)
 
