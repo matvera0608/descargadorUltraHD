@@ -335,10 +335,8 @@ def formatear_eta(ETA):
 
 def actualizar_interfaz_progreso(ventanaProgreso, lbl_estado, barra, lbl_porcentaje, velocidad, eta, porcentaje):
        
-    ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
-
     if ventanaProgreso is None:
-        return
+      return
 
     def actualizar():
         try:
@@ -366,8 +364,6 @@ def actualizar_interfaz_progreso(ventanaProgreso, lbl_estado, barra, lbl_porcent
 
 def mostrar_descarga_completada(ventanaProgreso, lbl_estado, barra, lbl_porcentaje):
        
-    ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
-
     if ventanaProgreso is None:
         return
 
@@ -384,8 +380,6 @@ def mostrar_descarga_completada(ventanaProgreso, lbl_estado, barra, lbl_porcenta
 
 
 def mostrar_error_progreso(ventanaProgreso, lbl_estado):  
-  ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
-
   if ventanaProgreso is None:
       return
 
