@@ -1,6 +1,7 @@
 from tkinter import filedialog as diálogo
-import threading as hilo
+import threading
 from yt_dlp import YoutubeDL
+from yt_dlp.utils import DownloadError
 import os
 from Subtitling import procesar_subtítulos
 from Encoding import *
@@ -8,6 +9,7 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 from FFMPEG import descargar_FFMPEG
+from web.Internet import verificar_conexión_a_internet
 
 BASE_YDL_OPTS = {
     "quiet": True,
@@ -20,51 +22,22 @@ BASE_YDL_OPTS = {
 }
 
 
-def obtener_ruta_ffmpeg(ventana):
+def obtener_ruta_ffmpeg(ventana, color=None):
     base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
     
-    ffmpeg_path = os.path.join(base_path, "ffmpeg.exe")
+    
+    carpeta_ffmpeg = os.path.join(base_path, "ffmpeg")
+    
+    ffmpeg_path = os.path.join(carpeta_ffmpeg, "ffmpeg.exe")
     
     if os.path.exists(ffmpeg_path):
         return ffmpeg_path
 
-    actualizar_progreso, actualizar_estado = mostrar_descarga_FFMPEG(ventana)
+    
+    actualizar_progreso, actualizar_estado, frame = mostrar_descarga_FFMPEG(ventana, color) #Acá es donde me está tirando un error
     
     return descargar_FFMPEG(progreso=actualizar_progreso, estado=actualizar_estado)
-    
 
-def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
-    
-    opts = BASE_YDL_OPTS.copy()
-    
-    opts.update({
-        "outtmpl": plantilla,
-        "format": "bestvideo+bestaudio/best",
-        "progress_hooks": [hook_progreso],
-        "merge_output_format": "mp4",
-        "postprocessors": [
-            {
-                "key": "FFmpegExtractAudio",
-                "preferredcodec": "mp3",
-                "preferredquality": "192"
-            }
-        ],
-    })
-    
-    return opts
-
-def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
-    
-    opts = BASE_YDL_OPTS.copy()
-
-    opts.update({
-        "outtmpl": plantilla,
-        "format": "bestvideo+bestaudio/best",
-        "progress_hooks": [hook_progreso],
-        "merge_output_format": "mp4",
-    })
-    
-    return opts
 
 def detectar_plataforma(link_de_archivo):
     link_de_archivo = link_de_archivo.lower()
@@ -85,6 +58,7 @@ def detectar_plataforma(link_de_archivo):
         return "twitter"
 
     return "default"
+
 
 def clasificar_calidad(info, plataforma="default"):
     formato = info.get("formats", [])
@@ -159,7 +133,8 @@ def clasificar_calidad(info, plataforma="default"):
         return "Mala"
     else:
         return "Muy mala"
-    
+
+
 def imprimir_calidad_real(info, url):
     formato = info.get("formats", [])
 
@@ -191,56 +166,136 @@ def imprimir_calidad_real(info, url):
     print(f"FPS        : {fps}")
     print(f"Formato ID : {fid}")
 
+
+def ydl_opts_descargar_audio_mp3(plantilla, hook_progreso):
+           
+    opts = BASE_YDL_OPTS.copy()
+    
+    opts.update({
+        "outtmpl": plantilla,
+        # "format": "bestvideo+bestaudio/best",
+        "progress_hooks": [hook_progreso],
+        "merge_output_format": "mp4",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "192"
+            }
+        ],
+    })
+    
+    return opts
+
+
+def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
+    
+    opts = BASE_YDL_OPTS.copy()
+
+    opts.update({
+        "outtmpl": plantilla,
+        # "format": "bestvideo+bestaudio/best",
+        "progress_hooks": [hook_progreso],
+        "merge_output_format": "mp4",
+    })
+    
+    return opts
+
+descarga_en_proceso = False
+cancelado = False
+
 def descargar(ventana, url, modo_descarga, subtitulos):
+    global cancelado, descarga_en_proceso
+    
+    if descarga_en_proceso:
+        mostrar_aviso(ventana, "Hay una descarga en proceso", colors["alert"])
+        return
+    
+    cancelado = False
+    
+    print("🟢 NUEVA DESCARGA")
+    
 
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
         return
     
-    plantilla = os.path.join(destino, "%(title)s.%(ext)s")
+    descarga_en_proceso = True
     
-    ruta_FFMPEG = obtener_ruta_ffmpeg(ventana)
+    ventana_de_descarga = None
     
-    ydl_opts = (
-        ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
-        if modo_descarga == "mp3"
-        else ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
-    )
+    try:
     
-    ##Si tengo así el diccionario ydl_opts arriba del if donde verifica la ruta del FFMPEG, ¿Tirará algún error posible a la hora de ejecutar?
-    ydl_opts.update({
-        "nopart": True,
-        "outtmpl": plantilla,
-        "progress_hooks": [hook_progreso],
-        "js_runtimes": {"node": {}}, 
+        plantilla = os.path.join(destino, "%(title)s.%(ext)s")
         
-    })
-    if ruta_FFMPEG:
-        ydl_opts["ffmpeg_location"] = ruta_FFMPEG
+        ruta_FFMPEG = obtener_ruta_ffmpeg(ventana)
         
-
-    ruta_cookie = None
-    
-    if es_de_bilibili:
-        ruta_cookie = procesar_cookies()
+        ydl_opts = (
+            ydl_opts_descargar_audio_mp3(plantilla, hook_progreso)
+            if modo_descarga == "mp3"
+            else ydl_opts_descargar_video_mp4(plantilla, hook_progreso)
+        )
+        
+        print("YDLOPTS:")
+        print(ydl_opts)
+        
+        ##Si tengo así el diccionario ydl_opts arriba del if donde verifica la ruta del FFMPEG, ¿Tirará algún error posible a la hora de ejecutar?
         ydl_opts.update({
-            "cookiefile": ruta_cookie if ruta_cookie else None,
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Referer": "https://www.bilibili.com/",
-            },
+            "quiet": True,
+            "nopart": False,
+            "outtmpl": plantilla,
+            "progress_hooks": [hook_progreso],
+            # "js_runtimes": {"node": {}}, 
         })
+        if ruta_FFMPEG:
+            ydl_opts["ffmpeg_location"] = ruta_FFMPEG
+
+        ruta_cookie = None
+        
+        if es_de_bilibili:
+            ruta_cookie = procesar_cookies()
+            ydl_opts.update({
+                "cookiefile": ruta_cookie if ruta_cookie else None,
+                "http_headers": {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                    "Referer": "https://www.bilibili.com/",
+                },
+            })
+        
+        ventana_de_descarga = mostrar_descarga(ventana)
     
-    mostrar_descarga(ventana)
-    
+    #Errores relacionados a la preparación de descarga
+    except Exception as e:
+        print("ERROR:", e)
+        
+        ventana.after(2000, lambda: cerrar_seguro(ventana_de_descarga))
+        mostrar_aviso(ventana, "Error al preparar la descarga", colors["error"])
     
     def tarea():
+        global descarga_en_proceso
         try:
             with YoutubeDL(ydl_opts) as ydl: #type: ignore
-                info = ydl.extract_info(url, download=True)
-                archivo_final = ydl.prepare_filename(info)
                 
+                print("🔎 ANTES DE EXTRACT_INFO")
+                print("cancelado =", cancelado)
+                print("hook activo =", getattr(hook_progreso, "activo", None))
+                print("archivo actual =", getattr(hook_progreso, "archivo_actual", None))
+                
+                # print("▶️ Ejecutando extract_info()")
+                
+                info = ydl.extract_info(url, download=True)
+                
+                #La descarga se cancela
+                if cancelado:
+                    return
+                
+                # print("✅ extract_info() terminó correctamente")
+                
+                archivo_final = ydl.prepare_filename(info)
+            
+            #Post procesamiento
+            
             if modo_descarga == "mp3":
                 mostrar_aviso(ventana, f"Audio descargado", colors["successfully"])
                 
@@ -256,8 +311,66 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             #     mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
             # else:
             #     mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
-            
-        except Exception as e:
-            print("ERROR:", e) #Acá me tira la excepción, algunos elementos dicen que no están definidos.
+        
+        # Errores inesperados propios de yt-dlp
+        except DownloadError as e:
+            print("ERROR DE YT-DLP:", e)
 
-    hilo.Thread(target=tarea, daemon=True).start()
+            print("🔴 cancelado =", cancelado)
+            print("🔴 hook activo =", getattr(hook_progreso, "activo", None))
+            print("🔴 archivo actual =", getattr(hook_progreso, "archivo_actual", None))
+            ventana.after(2000, lambda: cerrar_seguro(ventana_de_descarga))
+        
+            archivo_actual = getattr(hook_progreso, "archivo_actual", None)
+
+            if archivo_actual:
+                limpiar_residuales(archivo_actual)
+            
+            if cancelado:
+                mostrar_aviso(ventana, "Descarga cancelada", colors["error"])
+                
+            elif not verificar_conexión_a_internet():
+                mostrar_aviso(ventana, "No hay conexión a Internet", colors["error"])
+            else:
+                mostrar_aviso(ventana, "Error en la descarga", colors["error"])
+        
+        #Errores genéricos
+        except Exception as e:
+            print("ERROR:", e)
+            
+            print("🔴 cancelado =", cancelado)
+            print("🔴 hook activo =", getattr(hook_progreso, "activo", None))
+            print("🔴 archivo actual =", getattr(hook_progreso, "archivo_actual", None))
+            
+            ventana.after(2000, lambda: cerrar_seguro(ventana_de_descarga))
+            if cancelado:
+                mostrar_aviso(ventana, "Descarga cancelada", colors["error"])
+            else:
+                mostrar_aviso(ventana, "Ocurrió un error inesperado", colors["error"])
+        finally:
+            if ventana_de_descarga is not None:
+                def finalizar_operación():
+                    global descarga_en_proceso
+                    cerrar_seguro(ventana_de_descarga)
+
+                    hook_progreso.activo = False
+                    hook_progreso.archivo_actual = None
+
+                    descarga_en_proceso = False
+
+                    print("⚪ Descarga finalizada")
+
+                # Le damos tiempo a que termine
+                # la limpieza y los callbacks pendientes.
+
+                ventana.after(2000, finalizar_operación)
+
+            else:
+                # Seguridad por si nunca llegó a crearse
+                # la ventana de descarga.
+
+                descarga_en_proceso = False
+
+                print("⚪ Descarga finalizada")
+            
+    threading.Thread(target=tarea, daemon=True).start()

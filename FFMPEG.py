@@ -1,4 +1,6 @@
 import urllib.request, glob, os, sys, zipfile, shutil, stat
+from web.Internet import verificar_conexión_a_internet
+from Elementos import colors
 
 def limpiar_basura():
      
@@ -36,7 +38,7 @@ def limpiar_basura():
                print(f"⚠️ No se pudo eliminar '{r}'. Motivo: {e}")
          
 
-def descargar_FFMPEG(progreso=None, estado=None):
+def descargar_FFMPEG(progreso, estado):
      
      limpiar_basura()
      
@@ -80,19 +82,39 @@ def descargar_FFMPEG(progreso=None, estado=None):
 
           ruta_encontrada = glob.glob(os.path.join(temp_dir, "**", "ffmpeg.exe"), recursive=True)
 
-          if ruta_encontrada:               
+          if ruta_encontrada:
+                      
+               print("✅ Se encontró ffmpeg.exe:")
+               print(ruta_encontrada[0])
                shutil.move(ruta_encontrada[0], ruta_exe)
                
+               print("✅ FFmpeg movido correctamente.")
                limpiar_basura()
-               
+               print("🧹 Limpieza terminada.")
+
                if estado:
-                    estado("🚀 ¡Todo listo para arrancar!")
+                    print("📢 Enviando mensaje de éxito...")
+                    estado("🚀 ¡Todo listo para arrancar!", colors["successfully"])
+
+                    print("Mensaje de éxito enviado")
+                    
                exito = True
           else:
                exito = False
 
      except Exception as e:
-          print(f"La descarga se interrumpió o falló: {e}")
+          
+          print(f"❌ Error descargando FFmpeg: {e}")
+
+          #Se ha colocado una función que verifique la conexión a internet y muestre en la interfaz para una mayor UX.
+          if not verificar_conexión_a_internet():
+               if estado:
+                    estado("No hay conexión a Internet", colors["error"])
+               
+          else:
+               if estado:
+                    estado("Error en la descarga", colors["error"])
+          
           exito = False
      
      return ruta_exe if exito else None

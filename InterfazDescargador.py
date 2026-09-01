@@ -30,7 +30,7 @@ def habilitar(evento=None):
           # URL inválida → deshabilitar botones, pero NO borrar el texto
                chBox_subtitular.configure(state="disabled")
                btnDescargar.configure(state="disabled")
-               entry_Link.configure(text_color=colors["danger"])
+               entry_Link.configure(text_color=colors["error"])
             
           if evento and evento.type == "FocusOut":
                if not urlHTTP.match(link_valor):
@@ -107,18 +107,29 @@ def actualizar_ytdlp_background():
 def actualizar_python():
     asyncio.run(actualizar_pip())
 
-def preparar_sistema_con_FFMPEG():
-     obtener_ruta_ffmpeg(interfaz)
-
+def iniciar_preparación_FFMPEG():
+     
+     actualizar_progreso, actualizar_estado, frame = mostrar_descarga_FFMPEG(interfaz)
+     
+     def tarea():
+          ruta = descargar_FFMPEG(progreso=actualizar_progreso, estado=actualizar_estado)
+          
+          if ruta:
+               interfaz.after(100, frame.destroy)
+               
+     threading.Thread(target = tarea, daemon=True).start()
 
 interfaz.protocol("WM_DELETE_WINDOW", cerrar_app)
 
 if __name__ == "__main__":
      
-     threading.Thread(target = actualizar_ytdlp_background, daemon = True).start()
-     threading.Thread(target = actualizar_python, daemon = True).start()
-     threading.Thread(target = preparar_sistema_con_FFMPEG, daemon = True).start() #Este es el que se encarga de prepara el sistema antes de iniciar cuando está descargando el FFMPEG
-
      limpiar_basura()
+     
+     interfaz.after(0, iniciar_preparación_FFMPEG)
+     
+     if not getattr(sys, "frozen", False):
+          threading.Thread(target = actualizar_ytdlp_background, daemon = True).start()
+          threading.Thread(target = actualizar_python, daemon = True).start()
+     
      
      interfaz.mainloop()

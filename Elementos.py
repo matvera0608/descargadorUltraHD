@@ -1,7 +1,7 @@
 from ImagenesImportadas import *
-from FFMPEG import descargar_FFMPEG
 import customtkinter as ctk
-import re, os
+import re, os, glob
+from yt_dlp.utils import DownloadError
 import tkinter as tk
 
 CALIDAD_DE_VIDEO = {
@@ -99,21 +99,24 @@ colors = {
     "primary": "#2563eb",
     "primary_hover": "#1d4ed8",
     "accent": "#06b6d4",
-    "danger": "#ef4444",
+    "error": "#db0000",
     "text": "#ffffff",
     "successfully": "#12c23b",
     "alert": "#f5bb0b"
 }
 
-
 ventanaProgreso = None
-
+cancelado = False
 
 urlHTTP = re.compile(r'^https?://([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/[^\s]*)?$')
 
+#Mejoré la lógica de cerrar seguro para que no tire errores innecesarios.
 def cerrar_seguro(ventana):
-  hook_progreso.activo = False
-  ventana.destroy()
+  try:
+    if ventana and ventana.winfo_exists():
+      ventana.destroy()
+  except tk.TclError:
+      pass
 
 
 def mostrar_seguro(ventana):
@@ -131,40 +134,88 @@ def limpiar_ansi(texto):
   return re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', texto)
 
 
-def mostrar_descarga_FFMPEG(ventana):
+def mostrar_descarga_FFMPEG(ventana, color=None):
   
-  barra = ctk.CTkProgressBar(ventana, width=250)
-  barra.pack(pady=10)
-  barra.set(0)
+  frame = ctk.CTkFrame(ventana, fg_color=colors["background"])
+  frame.place(relx=0.5, rely=0.9, anchor="center")
 
   fuente_letra = ("Arial", 15)
 
-  lbl_porcentaje = ctk.CTkLabel(ventana, text="0%", font=fuente_letra)
-  lbl_porcentaje.pack(pady=5)
+
+  lbl_estado = ctk.CTkLabel(frame, text="Preparando FFmpeg...", font=fuente_letra, text_color=color)
+  lbl_estado.pack(pady=(0, 15))
   
-  lbl_estado = ctk.CTkLabel(ventana, text="Preparando FFmpeg...", font=fuente_letra)
-  lbl_estado.pack(pady=2)
+  # La barra y el porcentaje se ubican de forma relativa dentro de la
+  # interfaz de descarga, justo debajo del botón de "Descargar".
+  barra = ctk.CTkProgressBar(frame, width=250)
+  barra.pack()
+  barra.set(0)
+  
+  lbl_porcentaje = ctk.CTkLabel(frame, text="0%", font=fuente_letra)
+  lbl_porcentaje.pack(pady=(5, 2))
+  
   
   def actualizar_progreso(valor):
     if ventana is None:
       return
     
     def actualizar():
-      barra.set(valor/100)
+      if not frame.winfo_exists():
+        return
+      barra.set(valor / 100)
       lbl_porcentaje.configure(text=f"{valor}%")
     
     ventana.after(0, actualizar)
          
-  def actualizar_estado(texto):
+
+
+  def actualizar_estado(texto, color=None):
+           
+    print("1️⃣ Entró actualizar_estado()")
+    print(f"Texto: {texto}")
+    print(f"Color: {color}")
+    
     if ventana is None:
+      print("❌ ventana es None")
       return
-    ventana.after(0, lambda: lbl_estado.configure(text=texto))
     
+    def actualizar():
+             
+      print("2️⃣ Se ejecutó actualizar()") 
+      
+      if not frame.winfo_exists():
+        print("❌ frame es inexistente")
+        return     
+      
+      print("3️⃣ Actualizando label")
+      
+      if color is None:
+        color_actual = colors["text"]
+      else:
+        color_actual = color
+
+      lbl_estado.configure(text=texto, text_color=color_actual)
+      
+      print("4️⃣ Label actualizado")
+      
+    ventana.after(0, actualizar)
     
-    
-  return actualizar_progreso, actualizar_estado
+  return actualizar_progreso, actualizar_estado, frame
 
 
+def limpiar_residuales(archivo_final):
+    # nombre base sin extensión
+    base = os.path.splitext(archivo_final)[0]
+    print("BASE:", base)
+
+    for archivo in glob.glob(base + "*"):
+        print("ENCONTRADO:", archivo)
+        try:
+            os.remove(archivo)
+            print("Eliminado el residual", archivo)
+        except Exception as e:
+            print(f"⚠️ No se pudo eliminar {archivo}: {e}")
+            pass
 
 
 def mostrar_descarga(ventana):
@@ -207,24 +258,95 @@ def mostrar_descarga(ventana):
 
   # --- Inyección de widgets al hook ---
   hook_progreso.activo = True
+  hook_progreso.archivo_actual = None
   hook_progreso.ventanaProgreso = ventanaProgreso
   hook_progreso.lbl_estado = lbl_estado
   hook_progreso.barra = barra
   hook_progreso.lbl_porcentaje = lbl_porcentaje
+  # ventanaProgreso.lbl_estado = lbl_estado
+  # ventanaProgreso.barra = barra
+  # ventanaProgreso.lbl_porcentaje = lbl_porcentaje
 
   # --- Manejo seguro de cierre ---
   def on_close():
+      global cancelado
+      cancelado = True
       hook_progreso.activo = False
-      ventanaProgreso.destroy()
+      cerrar_seguro(ventanaProgreso)
 
   ventanaProgreso.protocol("WM_DELETE_WINDOW", on_close)
   
   return ventanaProgreso
 
 
-# --- Hook de progreso (definido dentro) --- El hook es una función que se llama periódicamente
-# durante la descarga para actualizar la interfaz de usuario
+### FUNCIONES AUXILIARES PARA EL HOOK DE LA DESCARGA
+
+def actualizar_interfaz_progreso(ventanaProgreso, lbl_estado, barra, lbl_porcentaje, velocidad, eta, porcentaje):
+       
+    ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
+
+    if ventanaProgreso is None:
+        return
+
+    def actualizar():
+        try:
+            if not ventanaProgreso.winfo_exists():
+              return
+            lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta} segundos")
+
+            barra.set(porcentaje / 100)
+
+            lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
+
+        except tk.TclError:
+            pass
+
+    ventanaProgreso.after(0, actualizar)
+
+
+def mostrar_descarga_completada(ventanaProgreso, lbl_estado, barra, lbl_porcentaje):
+       
+    ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
+
+    if ventanaProgreso is None:
+        return
+
+    try:
+        if not ventanaProgreso.winfo_exists():
+            return
+
+        barra.set(1)
+        lbl_porcentaje.configure(text="100%")
+        lbl_estado.configure(text="✅ Descarga completada.")
+
+    except tk.TclError:
+      pass
+
+
+def mostrar_error_progreso(ventanaProgreso, lbl_estado):  
+  ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
+
+  if ventanaProgreso is None:
+      return
+
+  try:
+      if not ventanaProgreso.winfo_exists():
+        return
+
+      lbl_estado.configure(text="Falló la descarga")
+
+  except tk.TclError:
+    pass
+
+
 def hook_progreso(d):
+  global cancelado
+  if cancelado:
+    raise DownloadError("\nDescarga cancelada por el usuario")
+  
+  if "filename" in d:
+    hook_progreso.archivo_actual = d["filename"]
+  
   if not getattr(hook_progreso, "activo", True):
     return
   try:
@@ -233,34 +355,31 @@ def hook_progreso(d):
     total = d.get('total_bytes') or d.get('total_bytes_estimate')
     porcentaje = (d['downloaded_bytes'] / total) * 100 if total else 0
     
-    if d['status'] == 'downloading':
-      if hasattr(hook_progreso, "lbl_estado") and hook_progreso.lbl_estado.winfo_exists():
-        hook_progreso.lbl_estado.configure(text=f"Velocidad: {velocidad} | ETA: {eta}")
-      if hasattr(hook_progreso, "barra"):
-        hook_progreso.barra.set(porcentaje / 100)
-      if hasattr(hook_progreso, "lbl_porcentaje"):
-        hook_progreso.lbl_porcentaje.configure(text=f"{porcentaje:.1f}%")
-
-    elif d['status'] == 'finished':
-      if hasattr(hook_progreso, "barra") and hook_progreso.barra.winfo_exists(): #Controla la barra de progreso
-        hook_progreso.barra.set(1)
-      if hasattr(hook_progreso, "lbl_porcentaje") and hook_progreso.barra.winfo_exists(): #Calcula el porcentaje actual
-        hook_progreso.lbl_porcentaje.configure(text=f"100%")
-      if hasattr(hook_progreso, "lbl_estado") and hook_progreso.barra.winfo_exists():
-        hook_progreso.lbl_estado.configure(text="✅ Descarga completada.")
-      if getattr(hook_progreso, "ventanaProgreso", None):
-        hook_progreso.ventanaProgreso.after(5000, lambda: cerrar_seguro(hook_progreso.ventanaProgreso))
-        
+    #Variables booleanas
+    estado_descargando = d['status'] == 'downloading'
+    estado_finalizado = d['status'] == 'finished'
+    
+    if estado_descargando:
+      ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)   
+            
+      if ventanaProgreso:
+        actualizar_interfaz_progreso(ventanaProgreso, hook_progreso.lbl_estado, hook_progreso.barra, hook_progreso.lbl_porcentaje, velocidad, eta, porcentaje)
+      
+    elif estado_finalizado:
+      ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
+      
+      if ventanaProgreso:
+        ventanaProgreso.after(0, lambda: mostrar_descarga_completada(
+        ventanaProgreso, hook_progreso.lbl_estado, hook_progreso.barra, hook_progreso.lbl_porcentaje))
+      
     else:
-      if hasattr(hook_progreso, "lbl_estado"):
-        hook_progreso.lbl_estado.configure(text=f"Falló la descarga")
-                      
+      ventanaProgreso = getattr(hook_progreso, "ventanaProgreso", None)
+      if ventanaProgreso:
+        ventanaProgreso.after(0, lambda: mostrar_error_progreso(ventanaProgreso, hook_progreso.lbl_estado))
+        
+        
   except Exception as e:
     print(f"Error en el hook de progreso: {e}")
-    # try:
-    #   os.remove(temp_file)
-    # except Exception as e:
-    #   print(f"No se pudo eliminar el archivo temporal: {e}")
 
 
 def mostrar_aviso(contenedor, texto, color=None, milisegundos=5000):

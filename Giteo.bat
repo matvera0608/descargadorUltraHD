@@ -68,6 +68,7 @@ echo .........................................................................
         echo __pycache__/ >> .gitignore
         echo *.pyc >> .gitignore
         echo .venv/ >> .gitignore
+        echo /ffmpeg/ >> .gitignore
     ) ELSE IF "%LANG_TYPE%"=="javascript" (
         echo # Node.js >> .gitignore
         echo node_modules/ >> .gitignore
