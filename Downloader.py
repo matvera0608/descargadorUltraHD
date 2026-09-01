@@ -9,6 +9,7 @@ from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
 from FFMPEG import descargar_FFMPEG
+from ytdlp_ERROR import mostrar_mensajes_de_errores_específicos
 from web.Internet import verificar_conexión_a_internet
 
 BASE_YDL_OPTS = {
@@ -297,13 +298,16 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             #Post procesamiento
             
             if modo_descarga == "mp3":
-                mostrar_aviso(ventana, f"Audio descargado", colors["successfully"])
+                mensaje = f"Audio descargado"
+                mostrar_aviso(ventana, mensaje, colors["successfully"])
                 
             if necesitar_decodificación(info):
                 archivo_final = decodificar_video(archivo_final)
-                mostrar_aviso(ventana, "Video decodificado", colors["successfully"])
+                mensaje = "Video decodificado"
+                mostrar_aviso(ventana, mensaje, colors["successfully"])
             else:
-                mostrar_aviso(ventana, f"Video descargado", colors["successfully"])
+                mensaje = f"Video descargado"
+                mostrar_aviso(ventana, mensaje, colors["successfully"])
                 
             
             # if subtitulos:
@@ -327,12 +331,16 @@ def descargar(ventana, url, modo_descarga, subtitulos):
                 limpiar_residuales(archivo_actual)
             
             if cancelado:
-                mostrar_aviso(ventana, "Descarga cancelada", colors["error"])
-                
+                mensaje = "Descarga cancelada"
+                mostrar_aviso(ventana, mensaje, colors["error"])
             elif not verificar_conexión_a_internet():
-                mostrar_aviso(ventana, "No hay conexión a Internet", colors["error"])
+                mensaje = "No hay conexión a Internet"
+                mostrar_aviso(ventana, mensaje, colors["error"])
             else:
-                mostrar_aviso(ventana, "Error en la descarga", colors["error"])
+                mensaje = mostrar_mensajes_de_errores_específicos(e)
+                
+                
+            mostrar_aviso(ventana, mensaje, colors["error"])
         
         #Errores genéricos
         except Exception as e:
@@ -344,9 +352,10 @@ def descargar(ventana, url, modo_descarga, subtitulos):
             
             ventana.after(2000, lambda: cerrar_seguro(ventana_de_descarga))
             if cancelado:
-                mostrar_aviso(ventana, "Descarga cancelada", colors["error"])
+                mensaje = "Descarga cancelada"
             else:
-                mostrar_aviso(ventana, "Ocurrió un error inesperado", colors["error"])
+                mensaje = "Ocurrió un error inesperado"
+            mostrar_aviso(ventana, mensaje, colors["error"])
         finally:
             if ventana_de_descarga is not None:
                 def finalizar_operación():
