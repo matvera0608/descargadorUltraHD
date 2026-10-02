@@ -205,7 +205,7 @@ def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
 descarga_en_proceso = False
 cancelado = False
 
-def descargar(ventana, url, modo_descarga, subtitulos):
+def descargar(ventana, url, modo_descarga, subtitulos, idioma):
     global cancelado, descarga_en_proceso
     
     if descarga_en_proceso:
@@ -283,15 +283,11 @@ def descargar(ventana, url, modo_descarga, subtitulos):
                 print("hook activo =", getattr(hook_progreso, "activo", None))
                 print("archivo actual =", getattr(hook_progreso, "archivo_actual", None))
                 
-                # print("▶️ Ejecutando extract_info()")
-                
                 info = ydl.extract_info(url, download=True)
                 
                 #La descarga se cancela
                 if cancelado:
                     return
-                
-                # print("✅ extract_info() terminó correctamente")
                 
                 archivo_final = ydl.prepare_filename(info)
             
@@ -309,12 +305,12 @@ def descargar(ventana, url, modo_descarga, subtitulos):
                 mensaje = f"Video descargado"
                 mostrar_aviso(ventana, mensaje, colors["successfully"])
                 
-            
-            # if subtitulos:
-            #     procesar_subtítulos(ventana, url, destino, ruta_cookie)
-            #     mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
-            # else:
-            #     mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
+            #Así está bien este if?
+            if subtitulos:
+                procesar_subtítulos(ventana, url, destino, idioma, ruta_cookie)
+                mostrar_aviso(ventana, "Se descargará el video junto con los subtítulos...", colors["text"])
+            else:
+                mostrar_aviso(ventana, "Se descargará el video...", colors["text"])
         
         # Errores inesperados propios de yt-dlp
         except DownloadError as e:

@@ -5,13 +5,13 @@ from Elementos import *
 from yt_dlp_UPDATES import *
 
 
-def procesar_subtítulos(ventana, url, destino, ruta_cookie=None, progreso=None):
+def procesar_subtítulos(ventana, url, destino, idioma, ruta_cookie=None, progreso=None):
   try:
-    descarga_exitosa = descargar_subtítulos(ventana, url, destino)
+    descarga_exitosa = descargar_subtítulos(ventana, url, destino, idioma, ruta_cookie)
     if descarga_exitosa:
         mostrar_aviso(ventana, "SUBTÍTULO DESCARGADO CORRECTAMENTE", colors["successfully"])
     else:
-        mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["danger"])
+        mostrar_aviso(ventana, "ERROR AL DESCARGAR SUBTÍTULO", colors["error"])
   except Exception as e:
     cerrar_seguro(progreso)
     print(f"Error al descargar subtítulos: {e}")
@@ -43,19 +43,14 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
         print(f"Error al obtener subtítulos: {e}")
         return [], []
     
-def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
+def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None):
     try:
-        
         idiomas, info = obtener_subtítulos_disponibles(url, archivos_de_cookie)
         
         if not idiomas:
-            mostrar_aviso(ventana, "No hay subtítulos", colors["danger"])
-            return False, None
+            mostrar_aviso(ventana, "No hay subtítulos", colors["error"])
+            return False
         
-        # idioma = next((i for i in idiomas if i.endswith(("-orig", "-original", "-auto"))), idiomas[0])
-        
-        idioma = idiomas[0]
-       
        
         opts = {
                 "logger": None,
@@ -81,7 +76,7 @@ def descargar_subtítulos(ventana, url, destino, archivos_de_cookie=None):
             mostrar_aviso(ventana, f"Subtítulo guardado", colors["successfully"])
             return True
         else:
-            mostrar_aviso(ventana, "No se generó archivo de subtítulos", colors["danger"])
+            mostrar_aviso(ventana, "No se generó archivo de subtítulos", colors["error"])
             return False
         
     except Exception as e:
