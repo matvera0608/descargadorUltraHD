@@ -31,6 +31,15 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
     try:
         with YoutubeDL(subt_ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            
+        print("========== SUBTÍTULOS ==========")
+        print(info.get("subtitles"))
+        print("========== AUTOMÁTICOS ==========")
+        print(info.get("automatic_captions"))
+        print("========== REQUESTED ==========")
+        print(info.get("requested_subtitles"))
+        print("========== CLAVES INFO ==========")
+        print(info.keys())
         subs = {}
         
         for key in ["subtitles", "automatic_captions", "requested_subtitles"]:
