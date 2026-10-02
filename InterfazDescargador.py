@@ -92,7 +92,7 @@ entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
 
 crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.825, rely=0.378, anchor="center")
-cbBox_subtitulos = crearListaDesplegable(interfaz)
+cbBox_subtitulos = crearListaDesplegable(interfaz, None)
 cbBox_subtitulos.place(relx=0.825, rely=0.45, relwidth=0.10)
 
 
