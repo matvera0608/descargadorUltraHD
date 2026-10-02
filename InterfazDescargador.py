@@ -39,6 +39,26 @@ def habilitar(evento=None):
     except tk.TclError:
         pass
 
+
+def cargar_subtitulos(evento=None):
+     url = entry_Link.get().replace(" ", "").strip()
+
+     if not urlHTTP.match(url):
+          return
+
+     print("🔎 URL para buscar subtítulos:", url)
+     
+     idiomas, info = obtener_subtítulos_disponibles(url, None)
+
+     print("📝 IDIOMAS ENCONTRADOS:", idiomas)
+
+     cbBox_subtitulos.configure(values=idiomas)
+
+     if idiomas:
+          cbBox_subtitulos.set(idiomas[0])
+     else:
+          cbBox_subtitulos.set("")
+
 interfaz = ctk.CTk()
 interfaz.title("aTube Ramiro")
 interfaz.geometry("500x500")
@@ -81,14 +101,11 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
+entry_Link.bind("<Return>", cargar_subtitulos)
+
 
 bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)
-url = entry_Link.get()
-
-
-idiomas, info = obtener_subtítulos_disponibles(url, None)
-
 
 chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
 chBox_subtitular.place(relx=0.825, rely=0.5)
@@ -98,14 +115,13 @@ chBox_traducir.place(relx=0.825, rely=0.375)
 
 crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.825, rely=0.378, anchor="center")
 cbBox_subtitulos = crearListaDesplegable(interfaz, [])
-cbBox_subtitulos.configure(values=idiomas)
 cbBox_subtitulos.place(relx=0.825, rely=0.45, relwidth=0.10)
 
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
 
 
-btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interfaz, entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get(), idiomas),
+btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interfaz, entry_Link.get(), cbBox_formatos.get(), chBox_subtitular.get(), cbBox_subtitulos.get()),
 image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
 hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
