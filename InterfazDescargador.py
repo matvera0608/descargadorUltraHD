@@ -75,7 +75,7 @@ cbBox_formatos = crearListaDesplegable(interfaz)
 cbBox_formatos.set("mp4")
 cbBox_formatos.place(relx=0.45, rely=0.2, relwidth=0.2)
 cbBox_formatos.configure(command = lambda e: habilitar())
-#Para mí es mucho más práctico usar configure que command habilitar porque la diferencia es que este tira un error de que las variables no están definidas.
+
 
 bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)
@@ -90,6 +90,11 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
+
+crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.825, rely=0.378, anchor="center")
+cbBox_subtitulos = crearListaDesplegable(interfaz)
+cbBox_subtitulos.place(relx=0.825, rely=0.45, relwidth=0.10)
+
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
 

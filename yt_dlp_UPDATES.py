@@ -1,6 +1,6 @@
 import asyncio
 import sys
-import datetime, importlib.util
+import datetime
 from importlib.metadata import version, PackageNotFoundError
 
 def paquete_instalado(paquete):
@@ -150,8 +150,6 @@ async def main():
     await actualizar_pip()
     await actualizar_ctk()
     await actualizar_ytdlp()
-
-
 
 if __name__ == "__main__":
     asyncio.run(main())
