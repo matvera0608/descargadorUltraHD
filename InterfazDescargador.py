@@ -101,21 +101,20 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
-entry_Link.bind("<Return>", cargar_subtitulos)
-
+entry_Link.bind("<Paste>", cargar_subtitulos)
 
 bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)
 
-chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
-chBox_subtitular.place(relx=0.825, rely=0.5)
-
 chBox_traducir = crearBotónChequeo(interfaz, "Traducir\nSubtítulos", bool_traducir)
-chBox_traducir.place(relx=0.825, rely=0.375)
+chBox_traducir.place(relx=0.825, rely=0.6)
 
-crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.825, rely=0.378, anchor="center")
+chBox_subtitular = crearBotónChequeo(interfaz, "Descargar\nSubtítulos", bool_subtitular)
+chBox_subtitular.place(relx=0.825, rely=0.7)
+
+crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.9, rely=0.35, anchor="center")
 cbBox_subtitulos = crearListaDesplegable(interfaz, [])
-cbBox_subtitulos.place(relx=0.825, rely=0.45, relwidth=0.10)
+cbBox_subtitulos.place(relx=0.82, rely=0.45, relwidth=0.10)
 
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
@@ -125,8 +124,6 @@ btnDescargar = ctk.CTkButton(interfaz, text="", command=lambda: descargar(interf
 image=imagenDescargar, width=50, height=50, fg_color=colors["background"],
 hover_color=colors["background"], corner_radius=0, cursor="hand2", state="disabled")
 btnDescargar.place(relx=0.5, rely=0.7, anchor="center")
-
-##Esto está en InterfazDescargador.py
 
 def actualizar_ytdlp_background():
      asyncio.run(actualizar_ytdlp())
