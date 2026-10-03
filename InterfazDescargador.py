@@ -106,7 +106,8 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
-entry_Link.bind("<FocusIn>", cargar_subtitulos)
+entry_Link.bind("<FocusOut>", cargar_subtitulos)
+
 
 bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)

@@ -22,6 +22,12 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
     subt_ydl_opts = {
         "quiet": True,
         "skip_download": True,
+        "no_warnings": False,
+        "listsubtitles": True,
+        "http_headers": {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Referer": "https://www.bilibili.com/",
+        }
     }
     
     if archivos_de_cookie:
@@ -34,20 +40,27 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
             
         print("========== SUBTÍTULOS ==========")
         print(info.get("subtitles"))
+        
         print("========== AUTOMÁTICOS ==========")
         print(info.get("automatic_captions"))
+        
         print("========== REQUESTED ==========")
         print(info.get("requested_subtitles"))
+        
         print("========== CLAVES INFO ==========")
         print(info.keys())
+        
         subs = {}
         
         for key in ["subtitles", "automatic_captions", "requested_subtitles"]:
             if info.get(key):
                 subs.update(info[key])
                 
-        idiomas = [i for i in subs.keys() if i != "danmaku"] 
+        idiomas = [i for i in subs.keys() if i != "danmaku"]
+        
+        
         return idiomas, info
+    
     except Exception as e:
         print(f"Error al obtener subtítulos: {e}")
         return [], []

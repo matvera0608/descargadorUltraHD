@@ -3,7 +3,7 @@ import threading
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
 import os
-from Subtitling import procesar_subtítulos
+from Subtitling import *
 from Encoding import *
 from Cookies import *
 from Elementos import *
