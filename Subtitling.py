@@ -87,7 +87,10 @@ def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None
                 "js_runtimes": ["node"]
                 }
         
-
+        if archivos_de_cookie:
+           opts["cookiefile"] = archivos_de_cookie
+           
+           
         with YoutubeDL(opts) as ydl:
             ydl.download([url])
             
