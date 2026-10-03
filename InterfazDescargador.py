@@ -46,9 +46,14 @@ def cargar_subtitulos(evento=None):
      if not urlHTTP.match(url):
           return
 
+     ruta_de_cookie = None
+
+     if "bilibili" in url.lower():
+          ruta_de_cookie = procesar_cookies()
+     
      print("🔎 URL para buscar subtítulos:", url)
      
-     idiomas, info = obtener_subtítulos_disponibles(url, None)
+     idiomas, info = obtener_subtítulos_disponibles(url, ruta_de_cookie)
 
      print("📝 IDIOMAS ENCONTRADOS:", idiomas)
 
@@ -101,7 +106,7 @@ crearEtiqueta(interfaz, "Introduce el link de video. Apto para cualquier platafo
 entry_Link = crearEntradaLink(interfaz)
 entry_Link.place(relx=0.15, rely=0.45, relwidth=0.65)
 entry_Link.bind("<KeyRelease>", habilitar)
-entry_Link.bind("<Paste>", cargar_subtitulos)
+entry_Link.bind("<FocusIn>", cargar_subtitulos)
 
 bool_subtitular = ctk.BooleanVar(value=False)
 bool_traducir = ctk.BooleanVar(value=False)
