@@ -120,7 +120,7 @@ chBox_subtitular.place(relx=0.825, rely=0.7)
 
 crearEtiqueta(interfaz, "Subtítulos disponibles: ", ("Arial", 10)).place(relx=0.9, rely=0.35, anchor="center")
 cbBox_subtitulos = crearListaDesplegable(interfaz, [])
-cbBox_subtitulos.place(relx=0.82, rely=0.45, relwidth=0.10)
+cbBox_subtitulos.place(relx=0.82, rely=0.45, relwidth=0.20)
 
 
 imagenDescargar = cargar_imagen("imágen", "download.png")
