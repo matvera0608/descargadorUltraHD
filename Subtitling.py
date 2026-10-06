@@ -73,11 +73,32 @@ def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None
             mostrar_aviso(ventana, "No hay subtítulos", colors["error"])
             return False
         
-       
+        subtítulos = info.get("subtitles", {})
+        datos_del_subtitulo = subtítulos.get(idioma)
+
+        if datos_del_subtitulo:
+            datos = datos_del_subtitulo[0].get("data")
+
+            if datos:
+                nombre_video = info.get("title", "subtitulo")
+                ruta_srt = os.path.join(destino, f"{nombre_video}.srt")
+
+                with open(ruta_srt, "w", encoding="utf-8") as archivo:
+                    archivo.write(datos)
+
+                print(f"✅ Subtítulo guardado en: {ruta_srt}")
+                mostrar_aviso(
+                    ventana,
+                    "Subtítulo guardado",
+                    colors["successfully"]
+                )
+                return True
+        
+        
         opts = {
                 "logger": None,
-                "quiet": True,
-                "no_warnings": True,
+                "quiet": False,
+                "no_warnings": False,
                 "skip_download": True,
                 "writesubtitles": True,
                 "outtmpl": os.path.join(destino, "%(title)s.%(ext)s"),
