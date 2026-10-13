@@ -1,7 +1,7 @@
 from yt_dlp import YoutubeDL
 from urllib.parse import urlparse, parse_qs
 import string, re
-from Deno import obtener_opciones_de_deno
+from Deno import *
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
@@ -139,8 +139,15 @@ def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None
                 "subtitlesformat": "srt",
                 "subtitleslangs": [idioma],
                 "writeautomaticsub": True,
-                "js_runtimes": ["node"]
+                "js_runtimes":   {
+                    "deno": {
+                            "path": RUTA_DENO
+                            }
+                    },
+                "remote_components": ["ejs:github"]
                 }
+        
+        opts.update(obtener_opciones_de_deno())
         
         if archivos_de_cookie:
            opts["cookiefile"] = archivos_de_cookie
