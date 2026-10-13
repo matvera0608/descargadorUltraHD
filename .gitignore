@@ -4,7 +4,7 @@ __pycache__/
 .venv/ 
 
 # Archivos personales de trabajo
-videos a descargar.txt
+*.txt
 
 # FFmpeg
 /ffmpeg/
