@@ -1,6 +1,7 @@
 from yt_dlp import YoutubeDL
 from urllib.parse import urlparse, parse_qs
 import string, re
+from Deno import obtener_opciones_de_deno
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
@@ -36,7 +37,7 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
             "cookiefile": archivos_de_cookie
         })
     try:
-        with YoutubeDL(subt_ydl_opts) as ydl:
+        with YoutubeDL(subt_ydl_opts) as ydl: # type: ignore
             info = ydl.extract_info(url, download=False)
             
         print("========== SUBTÍTULOS ==========")
@@ -105,8 +106,9 @@ def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None
         
         info_dict = dict(info)
         
-        subtítulos = info_dict.get("subtitles", {})
-        datos_del_subtitulo = subtítulos.get(idioma)
+        subtítulos = info_dict.get("subtitles") or {}
+        subtítulos_automáticos = info_dict.get("automatic_captions") or {}
+        datos_del_subtitulo = (subtítulos.get(idioma) or subtítulos_automáticos.get(idioma))
 
         if datos_del_subtitulo:
             datos = datos_del_subtitulo[0].get("data")
@@ -144,7 +146,7 @@ def descargar_subtítulos(ventana, url, destino, idioma, archivos_de_cookie=None
            opts["cookiefile"] = archivos_de_cookie
            
            
-        with YoutubeDL(opts) as ydl:
+        with YoutubeDL(opts) as ydl: # pyright: ignore[reportArgumentType]
             ydl.download([url])
             
         
