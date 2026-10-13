@@ -69,12 +69,11 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
                 pista
                 for pista in pistas
                 if not parse_qs(
-                    urlparse(pista.get("url", "")).query
-                ).get("tlang")
+                    urlparse(pista.get("url", "")).query).get("tlang")
                 ]
 
-            if pistas_originales:
-                subs.setdefault(idioma, pistas_originales)
+                if pistas_originales:
+                    subs.setdefault(idioma, pistas_originales)
             
         else:
             
@@ -87,7 +86,7 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
                 if info.get(key):
                     subs.update(info[key])
         
-        idiomas = [i for i in subs.keys() if i != "danmaku"]
+        idiomas = [idioma for idioma in subs if idioma != "danmaku"]
         
         
         return idiomas, info
