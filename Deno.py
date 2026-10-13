@@ -13,11 +13,10 @@ def obtener_opciones_de_deno():
        print("\n✅ Deno y EJS configurados")
        
        return {
-              
               "js_runtimes" : {
-              "deno" : { 
-                     "path": RUTA_DENO
-                     }
-              },
+                     "deno" : { 
+                            "path": RUTA_DENO
+                            }
+                     },
               "remote_components": ["ejs:github"]
-       }
+              }

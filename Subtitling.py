@@ -1,4 +1,5 @@
 from yt_dlp import YoutubeDL
+from urllib.parse import urlparse, parse_qs
 import string, re
 from Cookies import *
 from Elementos import *
@@ -52,10 +53,40 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
         
         subs = {}
         
-        for key in ["subtitles", "automatic_captions", "requested_subtitles"]:
-            if info.get(key):
-                subs.update(info[key])
-                
+        es_youtube = any(dominio in urlparse(url).netloc.lower() for dominio in ("youtube.com", "youtu.be", "youtube-nocookie.com"))
+
+        if es_youtube:
+            
+            #Esto hace que conserve los subtítulos disponibles normales
+            subs.update(info.get("subtitles") or {})
+            
+            #Esto hace que muestre los subtítulos automáticos
+            automaticos = info.get("automatic_captions") or {}
+            
+            
+            for idioma, pistas in automaticos.items():
+                pistas_originales = [
+                pista
+                for pista in pistas
+                if not parse_qs(
+                    urlparse(pista.get("url", "")).query
+                ).get("tlang")
+                ]
+
+            if pistas_originales:
+                subs.setdefault(idioma, pistas_originales)
+            
+        else:
+            
+            # Mantener el comportamiento actual para otras plataformas.
+            for key in [
+                "subtitles",
+                "automatic_captions",
+                "requested_subtitles"
+            ]:
+                if info.get(key):
+                    subs.update(info[key])
+        
         idiomas = [i for i in subs.keys() if i != "danmaku"]
         
         

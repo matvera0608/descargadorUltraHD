@@ -8,6 +8,7 @@ from Encoding import *
 from Cookies import *
 from Elementos import *
 from yt_dlp_UPDATES import *
+from Deno import obtener_opciones_de_deno
 from FFMPEG import descargar_FFMPEG
 from ytdlp_ERROR import mostrar_mensajes_de_errores_específicos
 from web.Internet import verificar_conexión_a_internet
@@ -195,7 +196,6 @@ def ydl_opts_descargar_video_mp4(plantilla, hook_progreso):
 
     opts.update({
         "outtmpl": plantilla,
-        # "format": "bestvideo+bestaudio/best",
         "progress_hooks": [hook_progreso],
         "merge_output_format": "mp4",
     })
@@ -216,7 +216,6 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
     
     print("🟢 NUEVA DESCARGA")
     
-
     es_de_bilibili = "bilibili" in url.lower()    
     destino = diálogo.askdirectory(title="¿Dónde querés descargar tu video?")
     if not destino:
@@ -252,6 +251,11 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
         if ruta_FFMPEG:
             ydl_opts["ffmpeg_location"] = ruta_FFMPEG
 
+        #Acá le ubiqué exactamente, porque en la función ydl_opts_descargar_video_mp4 no tiene parámetros como url.
+        if detectar_plataforma(url) == "youtube":
+            ydl_opts.update(obtener_opciones_de_deno())
+        
+        
         ruta_cookie = None
         
         if es_de_bilibili:
