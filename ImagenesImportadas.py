@@ -1,8 +1,8 @@
-import os
+import os, sys
 from PIL import Image, ImageTk
 import customtkinter as ctk
 
-directorio = os.path.dirname(__file__)
+directorio = getattr(sys, "MEIPASS", os.path.dirname(os.path.abspath(__file__)))
 ícono = os.path.join(directorio, "imágen", "descargador.ico")
 ícono_en_png = os.path.join(directorio, "imágen", "descargador.gif")
 
