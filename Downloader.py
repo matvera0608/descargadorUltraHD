@@ -246,7 +246,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
             "nopart": False,
             "outtmpl": plantilla,
             "progress_hooks": [hook_progreso],
-            # "js_runtimes": {"node": {}}, 
+            "js_runtimes": {"node": {}}, 
         })
         if ruta_FFMPEG:
             ydl_opts["ffmpeg_location"] = ruta_FFMPEG
@@ -279,6 +279,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
     
     def tarea():
         global descarga_en_proceso
+        print("🧵 Entró a tarea()")
         try:
             with YoutubeDL(ydl_opts) as ydl: #type: ignore
                 
@@ -381,5 +382,5 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
                 descarga_en_proceso = False
 
                 print("⚪ Descarga finalizada")
-            
+    print("🚀 Lanzando hilo tarea...")      
     threading.Thread(target=tarea, daemon=True).start()
