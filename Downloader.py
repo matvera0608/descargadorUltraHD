@@ -2,7 +2,7 @@ from tkinter import filedialog as diálogo
 import threading
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError
-import os
+import os, traceback
 from Subtitling import *
 from Encoding import *
 from Cookies import *
