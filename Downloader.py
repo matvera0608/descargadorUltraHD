@@ -346,6 +346,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
         #Errores genéricos
         except Exception as e:
             print("ERROR:", e)
+            traceback.print_exc()
             
             print("🔴 cancelado =", cancelado)
             print("🔴 hook activo =", getattr(hook_progreso, "activo", None))
