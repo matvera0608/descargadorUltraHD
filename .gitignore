@@ -1,10 +1,17 @@
 # Python 
 __pycache__/ 
 *.pyc 
-.venv/ 
+.venv/
+de_py_a_exe.bat
 
 # Archivos personales de trabajo
 *.txt
+*.exe
+
 
 # FFmpeg
 /ffmpeg/
+
+# Convertidos a executable
+/dist/
+/build/

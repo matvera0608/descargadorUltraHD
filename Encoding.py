@@ -1,7 +1,7 @@
 import subprocess as subproceso, os
 
 
-def decodificar_video(ruta_entrada, ruta_salida=None):
+def decodificar_video(ruta_entrada, ruta_salida):
     if ruta_salida is None:
         base, ext = os.path.splitext(ruta_entrada)
         ruta_salida = base + "_temp" + ext  # archivo temporal

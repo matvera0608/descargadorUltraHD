@@ -294,7 +294,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
                 if cancelado:
                     return
                 
-                archivo_final = ydl.prepare_filename(info)
+                archivo_final = ydl.prepare_filename(info) #¿este es el que debo reemplazar, verdad?
             
             #Post procesamiento
             
@@ -303,7 +303,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
                 mostrar_aviso(ventana, mensaje, colors["successfully"])
                 
             if necesitar_decodificación(info):
-                archivo_final = decodificar_video(archivo_final)
+                archivo_final = decodificar_video(archivo_final, ruta_FFMPEG or "ffmpeg")
                 mensaje = "Video decodificado"
                 mostrar_aviso(ventana, mensaje, colors["successfully"])
             else:
@@ -346,7 +346,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
         #Errores genéricos
         except Exception as e:
             print("ERROR:", e)
-            traceback.print_exc()
+            # traceback.print_exc()
             
             print("🔴 cancelado =", cancelado)
             print("🔴 hook activo =", getattr(hook_progreso, "activo", None))
