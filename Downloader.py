@@ -257,12 +257,11 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
         
         
         if es_de_bilibili:
-
+            ydl_opts.update(obtener_config_cookies("chrome")),
             ydl_opts.update({
-                ydl_opts.update(obtener_config_cookies("chrome")),
                 "http_headers": {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                    "Referer": "https://www.bilibili.com/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                "Referer": "https://www.bilibili.com/"
                 },
             })
         
