@@ -20,7 +20,7 @@ def procesar_subtítulos(ventana, url, destino, idioma, ruta_cookie=None, progre
     return False
 
 
-def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
+def obtener_subtítulos_disponibles(url):
     subt_ydl_opts = {
         "quiet": True,
         "skip_download": True,
@@ -32,10 +32,8 @@ def obtener_subtítulos_disponibles(url, archivos_de_cookie=None):
         }
     }
     
-    if archivos_de_cookie:
-        subt_ydl_opts.update({
-            "cookiefile": archivos_de_cookie
-        })
+    
+    subt_ydl_opts.update()
     try:
         with YoutubeDL(subt_ydl_opts) as ydl: # type: ignore
             info = ydl.extract_info(url, download=False)
