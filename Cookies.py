@@ -78,3 +78,10 @@ def procesar_cookies():
     except Exception as e:
         print(f"Error al procesar la cookie: {e}")
         return False
+
+
+def obtener_config_cookies(navegador="chrome"):
+  navegador = (navegador or "").strip().lower()
+  if not navegador:
+    return {}
+  return {"cookiesfrombrowser": (navegador,)}
