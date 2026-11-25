@@ -256,12 +256,10 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
             ydl_opts.update(obtener_opciones_de_deno())
         
         
-        ruta_cookie = None
-        
         if es_de_bilibili:
-            ruta_cookie = procesar_cookies()
+
             ydl_opts.update({
-                "cookiefile": ruta_cookie if ruta_cookie else None,
+                ydl_opts.update(obtener_config_cookies("chrome")),
                 "http_headers": {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
                     "Referer": "https://www.bilibili.com/",
