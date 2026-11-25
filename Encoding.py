@@ -1,26 +1,39 @@
 import subprocess as subproceso, os
 
 
-def decodificar_video(ruta_entrada, ruta_salida):
+def decodificar_video(ruta_entrada, ruta_salida=None, ffmpeg_exe="ffmpeg"):
+    if not os.path.exists(ruta_entrada):
+        raise FileNotFoundError(f"No existe el archivo de entrada: {ruta_entrada}")
+
     if ruta_salida is None:
         base, ext = os.path.splitext(ruta_entrada)
-        ruta_salida = base + "_temp" + ext  # archivo temporal
-
+        ruta_salida = f"{base}_temp{ext}"
+    
     comando = [
-    "ffmpeg",
-    "-y",
-    "-i", ruta_entrada,
-    "-map", "0:v:0",   # asegura que se incluya el primer stream de video
-    "-map", "0:a:0?",  # incluye el primer stream de audio si existe (el ? evita error si no hay audio)
-    "-c:v", "libx264",
-    "-profile:v", "high",
-    "-pix_fmt", "yuv420p",
-    "-c:a", "aac",
-    "-b:a", "192k",
-    "-movflags", "+faststart",
-    "-map_metadata", "-1",
-    ruta_salida
-    ]
+      ffmpeg_exe,
+      "-y",
+      "-i",
+      ruta_entrada,
+      "-map",
+      "0:v:0",
+      "-map",
+      "0:a:0?",
+      "-c:v",
+      "libx264",
+      "-profile:v",
+      "high",
+      "-pix_fmt",
+      "yuv420p",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "192k",
+      "-movflags",
+      "+faststart",
+      "-map_metadata",
+      "-1",
+      ruta_salida,
+  ]
 
     subproceso.run(
         comando,
@@ -29,9 +42,14 @@ def decodificar_video(ruta_entrada, ruta_salida):
     )
 
 
-    # 🔄 reemplazar original por el convertido
-    os.replace(ruta_salida, ruta_entrada)
+    resultado = subproceso.run(
+      comando, stdout=subproceso.PIPE, stderr=subproceso.PIPE, text=True
+  )
 
+    if resultado.returncode != 0 or not os.path.exists(ruta_salida):
+        raise RuntimeError(f"FFmpeg falló (código {resultado.returncode}): {resultado.stderr}")
+
+    os.replace(ruta_salida, ruta_entrada)
     return ruta_entrada
 
 
