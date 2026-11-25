@@ -35,16 +35,7 @@ def decodificar_video(ruta_entrada, ruta_salida=None, ffmpeg_exe="ffmpeg"):
       ruta_salida,
   ]
 
-    subproceso.run(
-        comando,
-        stdout=subproceso.DEVNULL,
-        stderr=subproceso.DEVNULL
-    )
-
-
-    resultado = subproceso.run(
-      comando, stdout=subproceso.PIPE, stderr=subproceso.PIPE, text=True
-  )
+    resultado = subproceso.run(comando, stdout=subproceso.PIPE, stderr=subproceso.PIPE, text=True)
 
     if resultado.returncode != 0 or not os.path.exists(ruta_salida):
         raise RuntimeError(f"FFmpeg falló (código {resultado.returncode}): {resultado.stderr}")
@@ -56,10 +47,12 @@ def decodificar_video(ruta_entrada, ruta_salida=None, ffmpeg_exe="ffmpeg"):
 
 #Esto verifica 2 veces antes de hacer la recodificación para poder ver videos.
 def necesitar_decodificación(info):
-    vcodec = info.get("vcodec", "")
-    acodec = info.get("acodec", "")
-    ext = info.get("ext", "")
+    vcodec = info.get("vcodec") or ""
+    acodec = info.get("acodec") or ""
+    ext = info.get("ext") or ""
 
+    if vcodec in ("", "none"):
+        return False
     if ext != "mp4":
         return True
     if not vcodec.startswith("avc1"):

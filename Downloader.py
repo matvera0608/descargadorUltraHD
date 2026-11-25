@@ -299,16 +299,17 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
             #Post procesamiento
             
             if modo_descarga == "mp3":
-                mensaje = f"Audio descargado"
-                mostrar_aviso(ventana, mensaje, colors["successfully"])
-                
-            if necesitar_decodificación(info):
-                archivo_final = decodificar_video(archivo_final, ruta_FFMPEG or "ffmpeg")
-                mensaje = "Video decodificado"
-                mostrar_aviso(ventana, mensaje, colors["successfully"])
+              mensaje = "Audio descargado"
+              mostrar_aviso(ventana, mensaje, colors["successfully"])
+            elif necesitar_decodificación(info):
+              archivo_final = decodificar_video(
+                  archivo_final, ffmpeg_exe=ruta_FFMPEG or "ffmpeg"
+              )
+              mensaje = "Video decodificado"
+              mostrar_aviso(ventana, mensaje, colors["successfully"])
             else:
-                mensaje = f"Video descargado"
-                mostrar_aviso(ventana, mensaje, colors["successfully"])
+              mensaje = "Video descargado"
+              mostrar_aviso(ventana, mensaje, colors["successfully"])
                 
             #Así está bien este if?
             if subtitulos:
@@ -346,7 +347,7 @@ def descargar(ventana, url, modo_descarga, subtitulos, idioma):
         #Errores genéricos
         except Exception as e:
             print("ERROR:", e)
-            # traceback.print_exc()
+            traceback.print_exc()
             
             print("🔴 cancelado =", cancelado)
             print("🔴 hook activo =", getattr(hook_progreso, "activo", None))
